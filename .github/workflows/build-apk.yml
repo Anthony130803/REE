@@ -24,20 +24,41 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Capacitor CLI
+      - name: Install Capacitor
         run: |
-          npm install -g @capacitor/cli
           npm init -y
-          npm install @capacitor/core @capacitor/android
+          npm install @capacitor/core @capacitor/android @capacitor/cli
 
-      - name: Init Capacitor
+      - name: Preparar carpeta www
         run: |
-          npx cap init "DeliveryTrack" "com.deliverytrack.app" --web-dir "."
+          mkdir -p www
+          cp index.html www/
+          cp manifest.json www/
+          cp sw.js www/
+          cp -r css www/
+          cp -r js www/
+          cp -r icons www/
+
+      - name: Crear capacitor.config.json
+        run: |
+          cat > capacitor.config.json << 'CAPEOF'
+          {
+            "appId": "com.deliverytrack.app",
+            "appName": "DeliveryTrack",
+            "webDir": "www",
+            "android": {
+              "allowMixedContent": true
+            },
+            "server": {
+              "cleartext": true
+            }
+          }
+          CAPEOF
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Copy web assets to Android
+      - name: Copy web assets
         run: npx cap copy android
 
       - name: Make gradlew executable

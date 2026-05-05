@@ -3,459 +3,262 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#0A0A0A">
+  <meta name="theme-color" content="#0F0F0F">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Reparto Fácil">
-  <meta name="description" content="Tu app de reparto y ganancias por kilómetro">
-  <title>Reparto Fácil · Tarifa por KM</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <title>DeliveryTrack · Reparto Fácil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
+    /* ============================================
+       DeliveryTrack — Estilos profesionales + Animaciones
+       ============================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
 
+    :root {
+      --bg:          #0F0F0F;
+      --surface:     #1A1A1A;
+      --surface2:    #242424;
+      --surface3:    #2E2E2E;
+      --green:       #06C167;
+      --green-mid:   rgba(6,193,103,0.15);
+      --amber:       #FF9500;
+      --amber-mid:   rgba(255,149,0,0.12);
+      --red:         #FF3B30;
+      --blue:        #0A84FF;
+      --text1:       #FFFFFF;
+      --text2:       #A0A0A0;
+      --text3:       #606060;
+      --border:      rgba(255,255,255,0.07);
+      --radius:      16px;
+      --radius-sm:   10px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html { height: 100%; background: var(--bg); }
     body {
-      background: #0B0F1A;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      color: #F0F3FA;
-      padding: 0;
-      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text1);
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app {
-      max-width: 560px;
+      max-width: 480px;
       margin: 0 auto;
-      background: #0B0F1A;
-      min-height: 100vh;
-      box-shadow: 0 0 40px rgba(0,0,0,0.4);
-      display: flex;
-      flex-direction: column;
+      padding-bottom: calc(80px + var(--safe-bottom));
     }
 
-    /* TOPBAR */
+    /* TOP BAR */
     .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      padding: 18px 20px 12px 20px;
-      background: #0B0F1A;
-      border-bottom: 1px solid #1E293B;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .topbar-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
     .avatar {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, #10B981, #059669);
-      border-radius: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 18px;
-      color: white;
-      box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #000;
+      cursor: pointer;
     }
-    .topbar-name {
-      font-weight: 700;
-      font-size: 17px;
-    }
-    .topbar-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #9CA3AF;
-      margin-top: 4px;
-    }
+    .topbar-name { font-size: 15px; font-weight: 600; cursor: pointer; }
+    .topbar-status { font-size: 11px; color: var(--green); font-weight: 500; margin-top: 1px; }
     .online-dot {
-      width: 8px;
-      height: 8px;
-      background: #10B981;
-      border-radius: 10px;
-      display: inline-block;
-      box-shadow: 0 0 0 2px #0B0F1A;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      display: inline-block; margin-right: 4px;
+      animation: blink 2s ease-in-out infinite;
     }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
     .time-badge {
-      background: #1E293B;
-      padding: 6px 14px;
-      border-radius: 40px;
-      font-family: monospace;
-      font-weight: 500;
-      font-size: 15px;
-      letter-spacing: 0.5px;
-      color: #CBD5E1;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 13px; font-weight: 600; color: var(--text2);
     }
 
     /* HERO */
     .hero {
-      background: linear-gradient(145deg, #0F172A, #0B0F1A);
-      margin: 16px 16px 0 16px;
-      padding: 24px 20px;
-      border-radius: 32px;
-      border: 1px solid #1E293B;
+      background: var(--surface); margin: 12px; border-radius: var(--radius);
+      padding: 20px; border: 1px solid var(--border);
     }
-    .hero-label {
-      font-size: 14px;
-      color: #94A3B8;
-      letter-spacing: 0.5px;
-    }
-    .hero-amount {
-      font-size: 48px;
-      font-weight: 800;
-      margin: 8px 0 4px;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
-    .hero-amount span:first-child {
-      font-size: 32px;
-    }
-    .hero-sub {
-      font-size: 14px;
-      color: #94A3B8;
-      margin-bottom: 20px;
-    }
-    .progress-bar {
-      background: #1E293B;
-      height: 8px;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      background: #10B981;
-      width: 0%;
-      height: 100%;
-      border-radius: 20px;
-    }
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      font-size: 12px;
-      color: #94A3B8;
-    }
+    .hero-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; }
+    .hero-amount { font-size: 44px; font-weight: 800; letter-spacing: -1.5px; }
+    .hero-amount span:first-child { font-size: 22px; font-weight: 600; color: var(--text2); margin-right: 2px; }
+    .hero-sub { font-size: 13px; color: var(--text2); margin-top: 6px; }
+    .hero-sub b { color: var(--green); }
+    .progress-bar { background: var(--surface3); border-radius: 4px; height: 4px; margin-top: 14px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1); width: 0%; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-top: 5px; }
 
     /* STATS */
-    .stats-row {
-      display: flex;
-      gap: 12px;
-      margin: 20px 16px;
-      flex-wrap: wrap;
-    }
-    .stat {
-      background: #111827;
-      padding: 14px 20px;
-      border-radius: 28px;
-      flex: 1;
-      text-align: center;
-      border: 1px solid #1F2A3E;
-    }
-    .stat-val {
-      font-size: 26px;
-      font-weight: 800;
-    }
-    .green { color: #34D399; }
-    .amber { color: #FBBF24; }
-    .blue { color: #60A5FA; }
-    .stat-lbl {
-      font-size: 12px;
-      color: #9CA3AF;
-      margin-top: 4px;
-    }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 12px 12px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 10px; text-align: center; transition: transform 0.15s; }
+    .stat-val { font-size: 17px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .stat-lbl { font-size: 10px; color: var(--text2); font-weight: 500; }
+    .stat-val.green { color: var(--green); }
+    .stat-val.amber { color: var(--amber); }
+    .stat-val.blue { color: var(--blue); }
 
     /* TABS */
-    .nav-tabs {
-      display: flex;
-      margin: 8px 16px 16px;
-      gap: 12px;
-      background: #0F172A;
-      padding: 6px;
-      border-radius: 60px;
-    }
+    .nav-tabs { display: flex; gap: 8px; padding: 0 16px 12px; background: var(--bg); position: sticky; top: 0; z-index: 10; }
     .nav-tab {
-      flex: 1;
-      background: transparent;
-      border: none;
-      padding: 10px 0;
-      font-weight: 600;
-      font-size: 15px;
-      border-radius: 40px;
-      color: #94A3B8;
-      transition: all 0.2s;
-      cursor: pointer;
+      flex: 1; padding: 10px 0; border: none; border-radius: 10px;
+      background: var(--surface); color: var(--text2); font-family: inherit;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+      border: 1px solid var(--border);
     }
-    .nav-tab.active {
-      background: #10B981;
-      color: #0B0F1A;
-      box-shadow: 0 2px 8px rgba(16,185,129,0.2);
-    }
-    .tab-panel {
-      display: none;
-      padding: 0 16px 20px;
-    }
-    .tab-panel.active {
-      display: block;
-    }
+    .nav-tab.active { background: var(--green); color: #000; border-color: transparent; transform: scale(0.98); }
+    .tab-panel { display: none; animation: fadeIn 0.25s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* FORM */
-    .section {
-      margin-bottom: 24px;
+    /* SECTION */
+    .section { margin: 0 12px 12px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .section-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .order-count-badge { font-size: 12px; color: var(--text3); font-weight: 600; }
+
+    /* ADD CARD */
+    .add-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .type-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
+    .type-tab {
+      padding: 13px; text-align: center; font-size: 13px; font-weight: 600;
+      color: var(--text2); cursor: pointer; background: transparent;
+      transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+      border-bottom: 2px solid transparent;
     }
-    .section-title {
-      font-weight: 700;
-      font-size: 18px;
+    .type-tab.active-green { color: var(--green); background: rgba(6,193,103,0.08); border-bottom-color: var(--green); }
+    .type-tab.active-amber { color: var(--amber); background: rgba(255,149,0,0.08); border-bottom-color: var(--amber); }
+    .form-body { padding: 14px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; margin-bottom: 6px; }
+    .field input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 11px 14px;
+      color: var(--text1); font-family: inherit; font-size: 15px; outline: none;
+      transition: border-color 0.15s;
     }
-    .add-card {
-      background: #111827;
-      border-radius: 32px;
-      padding: 20px;
-      margin-top: 12px;
-      border: 1px solid #1F2A3E;
+    .field input:focus { border-color: var(--green); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* TARIFF TABLE */
+    .tariff-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 12px; margin: 12px 0; border: 1px solid var(--border); }
+    .tariff-title { font-size: 10px; font-weight: 600; color: var(--text3); margin-bottom: 8px; }
+    .tariff-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tariff-item { background: var(--surface3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .tariff-item span:first-child { color: var(--text2); }
+    .tariff-item span:last-child { color: var(--amber); font-weight: 700; margin-left: 4px; }
+
+    /* TOGGLES */
+    .toggle-group { display: flex; gap: 12px; margin: 8px 0; }
+    .toggle-item {
+      display: flex; align-items: center; gap: 6px; background: var(--surface2);
+      padding: 6px 14px; border-radius: 40px; cursor: pointer;
+      border: 1px solid var(--border); transition: all 0.15s;
     }
-    .field {
-      margin-bottom: 18px;
-    }
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: #CBD5E1;
-    }
-    input {
-      width: 100%;
-      background: #1E293B;
-      border: 1px solid #2D3A4E;
-      padding: 14px 16px;
-      border-radius: 28px;
-      font-size: 15px;
-      color: white;
-      outline: none;
-      transition: 0.2s;
-    }
-    input:focus {
-      border-color: #10B981;
-    }
-    /* km input wrapper */
-    .km-group {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    .km-group input {
-      flex: 1;
-    }
-    .km-badge {
-      background: #0F172A;
-      padding: 8px 16px;
-      border-radius: 40px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #FBBF24;
-      border: 1px solid #2D3A4E;
-      white-space: nowrap;
-    }
-    .tariff-table {
-      background: #0F172A;
-      border-radius: 24px;
-      padding: 4px 0;
-      margin: 16px 0;
-      border: 1px solid #1E293B;
-    }
-    .tariff-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 16px;
-      border-bottom: 1px solid #1E293B;
-      font-size: 13px;
-    }
-    .tariff-row:last-child {
-      border-bottom: none;
-    }
-    .tariff-range {
-      font-weight: 500;
-      color: #CBD5E1;
-    }
-    .tariff-price {
-      font-weight: 700;
-      color: #10B981;
-    }
-    .preview-box {
-      background: #0F172A;
-      border-radius: 28px;
-      padding: 14px 16px;
-      margin: 16px 0;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      border-left: 4px solid #10B981;
-    }
+    .toggle-item.active { background: var(--green); border-color: var(--green); color: #000; }
+    .toggle-item.active span { color: #000; }
+
+    /* PREVIEW */
+    .preview-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; border-left: 3px solid var(--green); }
+    .preview-content { font-weight: 700; font-size: 15px; }
+    .preview-detail { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+    /* SUBMIT BTN */
     .submit-btn {
-      background: #10B981;
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 48px;
-      font-weight: 800;
-      font-size: 17px;
-      color: #0B0F1A;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-top: 8px;
+      width: 100%; padding: 14px; border-radius: var(--radius-sm); border: none;
+      font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--green); color: #000;
     }
-    .submit-btn:active {
-      transform: scale(0.97);
-      background: #059669;
-    }
+    .submit-btn:active { transform: scale(0.97); opacity: 0.9; }
 
-    /* HISTORIAL */
-    .order-count-badge {
-      font-size: 13px;
-      background: #1E293B;
-      padding: 4px 12px;
-      border-radius: 40px;
-    }
-    #orders-list {
-      margin-top: 12px;
-    }
+    /* ORDER CARDS con estado PENDIENTE */
     .order-card {
-      background: #111827;
-      border-radius: 24px;
-      padding: 16px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid #1F2A3E;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 13px 14px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+      animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      transition: all 0.2s;
     }
-    .order-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .order-card.pending { border-left: 3px solid var(--amber); background: linear-gradient(90deg, rgba(255,149,0,0.05), var(--surface)); }
+    .order-card.paid { border-left: 3px solid var(--green); opacity: 0.85; }
+    .order-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .order-icon.green { background: rgba(6,193,103,0.12); }
+    .order-icon.amber { background: rgba(255,149,0,0.12); }
+    .order-info { flex: 1; min-width: 0; }
+    .order-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .order-detail { font-size: 11px; color: var(--text2); line-height: 1.5; }
+    .status-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: inline-block; }
+    .status-pending { background: rgba(255,149,0,0.15); color: var(--amber); }
+    .status-paid { background: rgba(6,193,103,0.15); color: var(--green); }
+    .pay-btn {
+      background: var(--amber); border: none; border-radius: 20px;
+      padding: 6px 12px; font-size: 11px; font-weight: 700;
+      color: #000; cursor: pointer; transition: 0.15s;
+      font-family: inherit;
     }
-    .order-name {
-      font-weight: 700;
-    }
-    .order-meta {
-      font-size: 12px;
-      color: #9CA3AF;
-      display: flex;
-      gap: 12px;
-    }
-    .order-earn {
-      font-weight: 800;
-      font-size: 20px;
-      color: #34D399;
-    }
-    .empty {
-      text-align: center;
-      padding: 48px 20px;
-      color: #6B7280;
-    }
-    .empty-icon {
-      font-size: 48px;
-      opacity: 0.5;
-    }
+    .pay-btn:active { transform: scale(0.95); }
+    .order-right { text-align: right; flex-shrink: 0; }
+    .order-earn-val { font-size: 16px; font-weight: 700; color: var(--green); }
+    .order-pending-amount { font-size: 12px; color: var(--amber); font-weight: 600; margin-top: 2px; }
+    .del-btn { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; padding: 4px; transition: color 0.15s; }
 
     /* BOTTOM BAR */
     .bottombar {
-      background: #0F172A;
-      border-top: 1px solid #1E293B;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: auto;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(15,15,15,0.97); border-top: 1px solid var(--border);
+      padding: 12px 16px calc(12px + var(--safe-bottom));
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(16px); z-index: 100; max-width: 480px; margin: 0 auto;
     }
-    .bb-left {
-      display: flex;
-      flex-direction: column;
-    }
-    .bb-label {
-      font-size: 12px;
-      color: #9CA3AF;
-    }
-    .bb-amount {
-      font-size: 24px;
-      font-weight: 800;
-      color: #34D399;
-    }
-    .icon-btn {
-      background: #1E293B;
-      border: none;
-      font-size: 22px;
-      padding: 10px;
-      width: 48px;
-      border-radius: 40px;
-      cursor: pointer;
-      transition: 0.1s;
-      color: #CBD5E1;
-    }
-    .icon-btn:active {
-      background: #334155;
-    }
-    .bb-right {
-      display: flex;
-      gap: 12px;
-    }
+    .bb-left { display: flex; flex-direction: column; gap: 2px; }
+    .bb-label { font-size: 11px; color: var(--text3); font-weight: 500; }
+    .bb-amount { font-size: 26px; font-weight: 800; color: var(--green); letter-spacing: -0.5px; }
+    .bb-right { display: flex; gap: 8px; }
+    .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 17px; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+    .icon-btn:active { transform: scale(0.94); background: var(--surface2); }
+
+    /* TOAST */
     .toast {
-      position: fixed;
-      bottom: 90px;
-      left: 50%;
-      transform: translateX(-50%) scale(0.9);
-      background: #1E293B;
-      backdrop-filter: blur(12px);
-      padding: 10px 20px;
-      border-radius: 60px;
-      display: flex;
-      gap: 10px;
-      opacity: 0;
-      visibility: hidden;
-      transition: 0.2s;
-      z-index: 999;
-      font-weight: 500;
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 40px;
+      padding: 10px 18px; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px; opacity: 0;
+      transition: all 0.25s ease; z-index: 999; white-space: nowrap;
+      pointer-events: none;
     }
-    .toast.show {
-      opacity: 1;
-      visibility: visible;
-      transform: translateX(-50%) scale(1);
-    }
-    .toast-dot {
-      width: 10px;
-      height: 10px;
-      background: #10B981;
-      border-radius: 10px;
-      display: inline-block;
-    }
-    @media (max-width: 480px) {
-      .hero-amount { font-size: 40px; }
-      .stat-val { font-size: 22px; }
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+    .empty { text-align: center; padding: 36px 16px; color: var(--text3); }
+    .empty-icon { font-size: 42px; display: block; margin-bottom: 10px; opacity: 0.45; }
+
+    /* KM INPUT ROW */
+    .km-row { display: flex; gap: 8px; align-items: center; }
+    .km-row input { flex: 1; }
+    .base-badge { background: var(--surface3); padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 700; color: var(--amber); white-space: nowrap; }
   </style>
 </head>
 <body>
-<div class="app" id="app">
-  <div class="toast" id="toast"><span class="toast-dot"></span><span id="toast-msg">Envío añadido</span></div>
+<div class="app">
+  <div class="toast" id="toast"><span class="toast-dot"></span><span id="toast-msg">Envío registrado</span></div>
 
   <header class="topbar">
-    <div class="topbar-left">
-      <div class="avatar" id="avatar-initials">RV</div>
-      <div><div class="topbar-name" id="display-name">Repartidor</div><div class="topbar-status"><span class="online-dot"></span>En línea</div></div>
-    </div>
+    <div class="topbar-left"><div class="avatar" id="avatar-initials">RV</div><div><div class="topbar-name" id="display-name">Repartidor</div><div class="topbar-status"><span class="online-dot"></span>En línea</div></div></div>
     <div class="time-badge" id="clock">--:--</div>
   </header>
 
@@ -463,8 +266,8 @@
     <div class="hero-label">Ganancias de hoy</div>
     <div class="hero-amount"><span>$</span><span id="hero-val">0.00</span></div>
     <div class="hero-sub">De <b id="hero-envios">0 envíos</b> completados hoy</div>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-    <div class="progress-label"><span>$0</span><span>Meta: $<span id="meta-val">500</span></span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label"><span>$0</span><span>Meta: $<span id="meta-val">1000</span></span></div>
   </section>
 
   <div class="stats-row">
@@ -480,53 +283,55 @@
 
   <!-- TAB REGISTRAR -->
   <div id="panel-registrar" class="tab-panel active">
-    <div class="section">
-      <div class="section-head"><span class="section-title">Nuevo recorrido</span></div>
-      <div class="add-card">
-        <div class="field">
-          <label>📦 Pedido / Cliente</label>
-          <input id="inp-nombre" placeholder="Ej: Rappi 332, PedidosYa..." />
+    <div class="add-card">
+      <div class="type-tabs">
+        <button class="type-tab active-green" id="tab-digital" onclick="setPaymentMode('digital')"><span class="tab-icon">💳</span>Cliente paga</button>
+        <button class="type-tab" id="tab-cash" onclick="setPaymentMode('cash')"><span class="tab-icon">💵</span>Pagué en tienda</button>
+      </div>
+      <div class="form-body">
+        <div class="field"><label>🏷️ Pedido / Cliente</label><input id="inp-nombre" placeholder="Ej: McDonald's, Pedido #234" /></div>
+        
+        <div class="field"><label>📏 Kilómetros recorridos</label>
+          <div class="km-row">
+            <input id="inp-km" type="number" step="0.1" placeholder="Ej: 12.5" value="0" />
+            <div class="base-badge">Base: $<span id="km-base-preview">0</span></div>
+          </div>
         </div>
+        
+        <!-- Tabla tarifas escalonada (10+ km = $10 por km adicional sobre 110) -->
+        <div class="tariff-card"><div class="tariff-title">📊 Tarifa por distancia (base del envío)</div><div class="tariff-grid">
+          <div class="tariff-item"><span>0 - 4.9 km</span><span>$50</span></div>
+          <div class="tariff-item"><span>5 - 5.9 km</span><span>$60</span></div>
+          <div class="tariff-item"><span>6 - 6.9 km</span><span>$70</span></div>
+          <div class="tariff-item"><span>7 - 7.9 km</span><span>$80</span></div>
+          <div class="tariff-item"><span>8 - 8.9 km</span><span>$90</span></div>
+          <div class="tariff-item"><span>9 - 9.9 km</span><span>$100</span></div>
+          <div class="tariff-item"><span>10 km o más</span><span>$110 + $10 por km extra</span></div>
+        </div></div>
 
-        <div class="field">
-          <label>📏 Kilometraje recorrido (km)</label>
-          <div class="km-group">
-            <input id="inp-km" type="number" step="0.1" placeholder="Ej: 6.2" value="0" />
-            <div class="km-badge" id="km-preview-badge">→ $0</div>
+        <div class="field"><label>✨ Extras (+$10 c/u)</label><div class="toggle-group">
+          <div class="toggle-item" id="toggle-private" onclick="toggleExtra('private')"><span>🔒 Privado</span> <span id="private-status">+$0</span></div>
+          <div class="toggle-item" id="toggle-rain" onclick="toggleExtra('rain')"><span>🌧️ Lluvia</span> <span id="rain-status">+$0</span></div>
+        </div></div>
+
+        <!-- Campo pagué en tienda (solo para modo cash) -->
+        <div id="cash-field" style="display:none;">
+          <div class="field"><label>💰 ¿Cuánto pagaste en la tienda?</label><input id="inp-pague" type="number" step="1" placeholder="$0" value="0" /></div>
+          <div class="field" style="background: var(--amber-mid); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 12px;">
+            <div style="font-size: 11px; color: var(--amber);">💡 El cliente te pagará: <strong id="total-to-collect-preview">$0</strong> (lo que pagaste + tarifa de envío)</div>
           </div>
         </div>
 
-        <!-- TABLA DE TARIFAS POR KM -->
-        <div class="tariff-table" id="tariff-table">
-          <div class="tariff-row"><span class="tariff-range">0 km  →  menos de 5 km</span><span class="tariff-price">$50</span></div>
-          <div class="tariff-row"><span class="tariff-range">5 km  →  5.99 km</span><span class="tariff-price">$60</span></div>
-          <div class="tariff-row"><span class="tariff-range">6 km  →  6.99 km</span><span class="tariff-price">$70</span></div>
-          <div class="tariff-row"><span class="tariff-range">7 km  →  7.99 km</span><span class="tariff-price">$80</span></div>
-          <div class="tariff-row"><span class="tariff-range">8 km  →  8.99 km</span><span class="tariff-price">$90</span></div>
-          <div class="tariff-row"><span class="tariff-range">9 km  →  9.99 km</span><span class="tariff-price">$100</span></div>
-          <div class="tariff-row"><span class="tariff-range">10 km o más</span><span class="tariff-price">$110 + $5/km extra</span></div>
-        </div>
-
-        <div id="preview-box" class="preview-box" style="display:none;">
-          <div id="preview-content"></div>
-        </div>
-
-        <div class="field" style="margin-top: 4px;">
-          <label>💰 ¿Pagaste en tienda? (efectivo a reembolsar)</label>
-          <input id="inp-pague" type="number" step="1" placeholder="$0 (opcional)" value="0" />
-        </div>
-
+        <div id="preview-box" class="preview-box" style="display:none;"><div id="preview-content" class="preview-content"></div><div id="preview-detail" class="preview-detail"></div></div>
         <button class="submit-btn" id="submit-btn" onclick="addDelivery()">➕ Agregar envío</button>
       </div>
     </div>
   </div>
 
-  <!-- TAB HISTORIAL -->
+  <!-- TAB HISTORIAL con estado PENDIENTE / PAGADO -->
   <div id="panel-historial" class="tab-panel">
-    <div class="section">
-      <div class="section-head" style="display: flex; justify-content: space-between;"><span class="section-title">Historial de hoy</span><span id="order-count" class="order-count-badge">0 registros</span></div>
-      <div id="orders-list"><div class="empty"><span class="empty-icon">🛵</span><p>Agrega tu primer envío con kilometraje</p></div></div>
-    </div>
+    <div class="section"><div class="section-head"><span class="section-title">📦 Envíos</span><span id="order-count" class="order-count-badge">0 registros</span></div>
+    <div id="orders-list"><div class="empty"><span class="empty-icon">🛵</span><p>Agrega tu primer envío<br>Los pedidos con "Pagué en tienda" aparecerán pendientes</p></div></div></div>
   </div>
 
   <footer class="bottombar">
@@ -536,27 +341,24 @@
 </div>
 
 <script>
-  // ---------- TARIFA SEGÚN KILOMETRAJE ----------
-  function getRateByKm(km) {
-    if (km === undefined || km === null) km = 0;
+  // ========== TARIFA ESCALONADA: después de 10km → $10 por km adicional ==========
+  function getBaseRate(km) {
     if (km < 5) return 50;
-    if (km >= 5 && km < 6) return 60;
-    if (km >= 6 && km < 7) return 70;
-    if (km >= 7 && km < 8) return 80;
-    if (km >= 8 && km < 9) return 90;
-    if (km >= 9 && km < 10) return 100;
-    if (km >= 10) {
-      let base = 110;
-      let extraKms = Math.floor(km - 10);
-      return base + (extraKms * 5);
-    }
-    return 50;
+    if (km < 6) return 60;
+    if (km < 7) return 70;
+    if (km < 8) return 80;
+    if (km < 9) return 90;
+    if (km < 10) return 100;
+    // Para 10km o más: $110 base + $10 por cada km extra (redondeado hacia abajo)
+    let extraKms = Math.floor(km - 10);
+    return 110 + (extraKms * 10);
   }
 
-  // data model
-  let deliveries = [];      // { id, nombre, km, earning, pague, timestamp }
-  let dailyGoal = 500;
+  let deliveries = [];
+  let dailyGoal = 1000;
   let userName = "Repartidor";
+  let extraPrivate = false, extraRain = false;
+  let currentPaymentMode = "digital";
 
   // DOM elements
   const heroVal = document.getElementById('hero-val');
@@ -569,230 +371,231 @@
   const bbTotal = document.getElementById('bb-total');
   const ordersListDiv = document.getElementById('orders-list');
   const orderCountSpan = document.getElementById('order-count');
-  const avatarInitials = document.getElementById('avatar-initials');
-  const displayNameSpan = document.getElementById('display-name');
   const kmInput = document.getElementById('inp-km');
-  const kmPreviewBadge = document.getElementById('km-preview-badge');
-  const previewBox = document.getElementById('preview-box');
-  const previewContent = document.getElementById('preview-content');
   const inpNombre = document.getElementById('inp-nombre');
   const inpPague = document.getElementById('inp-pague');
+  const cashField = document.getElementById('cash-field');
+  const previewBox = document.getElementById('preview-box');
+  const previewContent = document.getElementById('preview-content');
+  const previewDetail = document.getElementById('preview-detail');
+  const kmBasePreview = document.getElementById('km-base-preview');
+  const totalToCollectPreview = document.getElementById('total-to-collect-preview');
+  const avatarInitials = document.getElementById('avatar-initials');
+  const displayNameSpan = document.getElementById('display-name');
 
-  // helpers
-  function updatePreviewByKm() {
-    let kmVal = parseFloat(kmInput.value);
-    if (isNaN(kmVal) || kmVal < 0) kmVal = 0;
-    const earning = getRateByKm(kmVal);
-    kmPreviewBadge.innerText = `→ $${earning}`;
-    // mostrar preview
-    if (kmVal > 0 || (inpNombre.value.trim() !== "")) {
-      previewBox.style.display = "block";
-      let pagueExtra = parseFloat(inpPague.value);
-      if (isNaN(pagueExtra)) pagueExtra = 0;
-      let net = earning - pagueExtra;
-      let netMsg = net >= 0 ? `ganancia neta $${net.toFixed(2)}` : `debes restar $${Math.abs(net).toFixed(2)}`;
-      previewContent.innerHTML = `📊 ${kmVal.toFixed(1)} km → tarifa envío: <strong>$${earning}</strong><br>${pagueExtra > 0 ? `💸 Pagaste $${pagueExtra} → ${netMsg}` : `✨ Ganancia limpia $${earning}`}`;
-    } else {
-      if (kmVal === 0 && inpNombre.value.trim() === "") previewBox.style.display = "none";
-      else previewBox.style.display = "block";
-    }
+  function calculateTotal(km, isPrivate, isRain) {
+    let base = getBaseRate(km);
+    let extras = (isPrivate ? 10 : 0) + (isRain ? 10 : 0);
+    return { base, extras, total: base + extras };
   }
 
+  function updatePreview() {
+    let km = parseFloat(kmInput.value) || 0;
+    const { base, extras, total } = calculateTotal(km, extraPrivate, extraRain);
+    kmBasePreview.innerText = base;
+    let pagueVal = parseFloat(inpPague?.value) || 0;
+    
+    // Para modo cash: el cliente paga = lo que pagué en tienda + la tarifa de envío
+    let amountToCollect = total + pagueVal;
+    
+    if (totalToCollectPreview) {
+      totalToCollectPreview.innerText = `$${amountToCollect}`;
+    }
+    
+    let show = (km > 0) || extraPrivate || extraRain || inpNombre.value.trim() !== "";
+    if (show) {
+      previewBox.style.display = "block";
+      let extraText = "";
+      if (extraPrivate && extraRain) extraText = "🔒+🌧️ +$20";
+      else if (extraPrivate) extraText = "🔒 +$10";
+      else if (extraRain) extraText = "🌧️ +$10";
+      let kmInfo = km >= 10 ? ` (${km.toFixed(1)}km → base $${base} = $110 + $${Math.floor(km-10)*10} extra)` : "";
+      previewContent.innerHTML = `💰 <strong>$${total}</strong> (tarifa envío) · base $${base} ${extraText}${kmInfo}`;
+      
+      if (currentPaymentMode === "cash") {
+        previewDetail.innerHTML = `💸 Pagué en tienda: <strong>$${pagueVal}</strong><br>🧾 El cliente debe pagarme: <strong style="color:var(--amber);">$${amountToCollect}</strong> = $${pagueVal} (reembolso) + $${total} (envío)`;
+      } else {
+        previewDetail.innerHTML = `✨ Cliente paga directamente la tarifa de envío: $${total}`;
+      }
+    } else previewBox.style.display = "none";
+    
+    document.getElementById('private-status').innerText = extraPrivate ? "+$10" : "+$0";
+    document.getElementById('rain-status').innerText = extraRain ? "+$10" : "+$0";
+    document.getElementById('toggle-private').classList.toggle('active', extraPrivate);
+    document.getElementById('toggle-rain').classList.toggle('active', extraRain);
+  }
+
+  window.toggleExtra = (type) => {
+    if (type === 'private') extraPrivate = !extraPrivate;
+    else extraRain = !extraRain;
+    updatePreview();
+  };
+
+  window.setPaymentMode = (mode) => {
+    currentPaymentMode = mode;
+    if (mode === 'cash') {
+      cashField.style.display = 'block';
+      document.getElementById('tab-cash').classList.add('active-amber');
+      document.getElementById('tab-digital').classList.remove('active-green');
+    } else {
+      cashField.style.display = 'none';
+      document.getElementById('tab-digital').classList.add('active-green');
+      document.getElementById('tab-cash').classList.remove('active-amber');
+    }
+    updatePreview();
+  };
+
+  window.addDelivery = () => {
+    let nombre = inpNombre.value.trim();
+    if (!nombre) { showToast("Escribe el nombre del pedido", false); return; }
+    let km = parseFloat(kmInput.value);
+    if (isNaN(km) || km <= 0) { showToast("Ingresa kilómetros válidos", false); return; }
+    const { base, extras, total } = calculateTotal(km, extraPrivate, extraRain);
+    
+    let pagueTienda = 0;
+    let pendingAmount = 0;
+    let status = "paid";
+    
+    if (currentPaymentMode === "cash") {
+      pagueTienda = parseFloat(inpPague.value) || 0;
+      // El cliente debe pagar = lo que pagué en tienda + la tarifa de envío
+      pendingAmount = total + pagueTienda;
+      status = "pending"; // Siempre pendiente hasta que el cliente pague
+    }
+    
+    const newDelivery = {
+      id: Date.now(), nombre, km, baseRate: base, extrasAmount: extras, 
+      deliveryFee: total,  // tarifa de envío (ganancia del repartidor)
+      pague: pagueTienda, 
+      pendingAmount: pendingAmount, 
+      status, 
+      isPrivate: extraPrivate, isRaining: extraRain,
+      timestamp: new Date().toISOString(), 
+      paymentMode: currentPaymentMode
+    };
+    deliveries.push(newDelivery);
+    refreshUI();
+    
+    if (currentPaymentMode === "cash") {
+      showToast(`${nombre} → Pagué $${pagueTienda} · Cliente debe pagar $${pendingAmount} ($${pagueTienda} + $${total})`, true);
+    } else {
+      showToast(`${nombre} → $${total} (cliente paga envío)`, true);
+    }
+    
+    inpNombre.value = "";
+    kmInput.value = "";
+    if (inpPague) inpPague.value = "0";
+    updatePreview();
+    inpNombre.focus();
+  };
+
+  window.markAsPaid = (id) => {
+    const index = deliveries.findIndex(d => d.id === id);
+    if (index !== -1 && deliveries[index].status === "pending") {
+      deliveries[index].status = "paid";
+      // La ganancia real para el repartidor es la tarifa de envío (deliveryFee)
+      // Lo que pagó en tienda ya se reembolsó cuando el cliente pagó el total
+      refreshUI();
+      showToast("✅ Cliente pagó - Pendiente liquidado", true);
+    }
+  };
+
+  window.deleteOrder = (id) => {
+    deliveries = deliveries.filter(d => d.id !== id);
+    refreshUI();
+    showToast("Envío eliminado", false);
+  };
+
   function refreshUI() {
-    // total ganancias acumuladas = suma de earnings
-    let totalEarnings = deliveries.reduce((sum, d) => sum + d.earning, 0);
+    // Ganancia total = suma de todas las tarifas de envío (lo que gana el repartidor)
+    let totalEarnings = deliveries.reduce((sum, d) => sum + d.deliveryFee, 0);
+    // Total que pagó el repartidor en tiendas
     let totalPaidByMe = deliveries.reduce((sum, d) => sum + (d.pague || 0), 0);
-    let netCashCollect = totalEarnings - totalPaidByMe;
-    if (netCashCollect < 0) netCashCollect = 0; // no mostrar negativo en por cobrar, pero igual.
-    let count = deliveries.length;
+    // Total pendiente por cobrar al cliente (solo pedidos no pagados)
+    let totalPending = deliveries.filter(d => d.status === "pending").reduce((sum, d) => sum + d.pendingAmount, 0);
+    
+    sCount.innerText = deliveries.length;
+    sCobrar.innerText = `$${totalPending.toFixed(2)}`;
+    sPague.innerText = `$${totalPaidByMe.toFixed(2)}`;
     heroVal.innerText = totalEarnings.toFixed(2);
-    heroEnvios.innerText = count;
+    heroEnvios.innerText = deliveries.length;
     let percent = (totalEarnings / dailyGoal) * 100;
     progressFill.style.width = Math.min(percent, 100) + "%";
-    sCount.innerText = count;
-    sCobrar.innerText = `$${netCashCollect.toFixed(2)}`;
-    sPague.innerText = `$${totalPaidByMe.toFixed(2)}`;
     bbTotal.innerText = `$${totalEarnings.toFixed(2)}`;
-    orderCountSpan.innerText = `${count} registro${count !== 1 ? 's' : ''}`;
+    orderCountSpan.innerText = `${deliveries.length} registro${deliveries.length !== 1 ? 's' : ''}`;
     renderHistory();
-    updateAvatarAndName();
     localStorageSave();
   }
 
   function renderHistory() {
     if (!deliveries.length) {
-      ordersListDiv.innerHTML = `<div class="empty"><span class="empty-icon">🛵</span><p>Sin envíos aún.<br>Agrega distancia y gana por km</p></div>`;
+      ordersListDiv.innerHTML = `<div class="empty"><span class="empty-icon">🛵</span><p>Sin envíos.<br>Agrega uno desde "Registrar"</p></div>`;
       return;
     }
     let html = "";
     deliveries.slice().reverse().forEach(d => {
-      let pagueStr = d.pague > 0 ? ` | Pagué: $${d.pague}` : "";
-      html += `
-        <div class="order-card">
-          <div class="order-info">
-            <div class="order-name">${escapeHtml(d.nombre) || "Pedido"}</div>
-            <div class="order-meta">📏 ${d.km.toFixed(1)} km • tarifa $${d.earning}${pagueStr}</div>
-            <div class="order-meta">🕒 ${new Date(d.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+      let extrasArr = [];
+      if (d.isPrivate) extrasArr.push("🔒 Privado");
+      if (d.isRaining) extrasArr.push("🌧️ Lluvia");
+      let extrasBadge = extrasArr.length ? `<span class="status-badge" style="background:#2E2E2E;">${extrasArr.join(' ')}</span>` : "";
+      let isPending = d.status === "pending";
+      let rango = d.km < 5 ? "0-5km" : d.km < 6 ? "5-6km" : d.km < 7 ? "6-7km" : d.km < 8 ? "7-8km" : d.km < 9 ? "8-9km" : d.km < 10 ? "9-10km" : `${d.km.toFixed(1)}km (10+ base $110 + $10/km)`;
+      
+      if (d.paymentMode === 'cash') {
+        html += `
+          <div class="order-card ${isPending ? 'pending' : 'paid'}">
+            <div class="order-icon ${isPending ? 'amber' : 'green'}">${isPending ? '⏱️' : '✅'}</div>
+            <div class="order-info">
+              <div class="order-name">${escapeHtml(d.nombre)} ${extrasBadge}</div>
+              <div class="order-detail">📏 ${d.km.toFixed(1)} km · ${rango} · tarifa envío: $${d.deliveryFee}</div>
+              <div class="order-detail">💸 Pagué en tienda: <strong>$${d.pague}</strong> → El cliente debe pagar: <strong>$${d.pendingAmount}</strong> ($${d.pague} + $${d.deliveryFee})</div>
+              <div class="order-detail">🕒 ${new Date(d.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+            </div>
+            <div class="order-right">
+              <div class="order-earn-val">+$${d.deliveryFee}</div>
+              ${isPending ? `<button class="pay-btn" onclick="event.stopPropagation(); markAsPaid(${d.id})">💰 Cliente pagó</button>` : `<div class="order-pending-amount" style="color:var(--green)">✅ Cobrado</div>`}
+              <button class="del-btn" onclick="event.stopPropagation(); deleteOrder(${d.id})">🗑️</button>
+            </div>
           </div>
-          <div class="order-earn">+$${d.earning}</div>
-        </div>
-      `;
+        `;
+      } else {
+        html += `
+          <div class="order-card paid">
+            <div class="order-icon green">✅</div>
+            <div class="order-info">
+              <div class="order-name">${escapeHtml(d.nombre)} ${extrasBadge}</div>
+              <div class="order-detail">📏 ${d.km.toFixed(1)} km · ${rango} · tarifa envío: $${d.deliveryFee}</div>
+              <div class="order-detail">💳 Cliente pagó directamente la tarifa de envío</div>
+              <div class="order-detail">🕒 ${new Date(d.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+            </div>
+            <div class="order-right">
+              <div class="order-earn-val">+$${d.deliveryFee}</div>
+              <button class="del-btn" onclick="event.stopPropagation(); deleteOrder(${d.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+      }
     });
     ordersListDiv.innerHTML = html;
   }
 
-  function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
-  function addDelivery() {
-    let nombre = inpNombre.value.trim();
-    if (nombre === "") {
-      showToast("Escribe el nombre del pedido o cliente", false);
-      return;
-    }
-    let kmVal = parseFloat(kmInput.value);
-    if (isNaN(kmVal) || kmVal < 0) {
-      showToast("Ingresa un kilometraje válido (ej: 6.2)", false);
-      return;
-    }
-    let pagueVal = parseFloat(inpPague.value);
-    if (isNaN(pagueVal)) pagueVal = 0;
-
-    const earning = getRateByKm(kmVal);
-    // Crear envío
-    const newDelivery = {
-      id: Date.now(),
-      nombre: nombre,
-      km: kmVal,
-      earning: earning,
-      pague: pagueVal,
-      timestamp: new Date().toISOString()
-    };
-    deliveries.push(newDelivery);
-    refreshUI();
-    showToast(`${nombre} • ${kmVal.toFixed(1)} km → $${earning}`, true);
-    // reset campos opcionales pero mantener nombre sugerencia
-    inpNombre.value = "";
-    kmInput.value = "";
-    inpPague.value = "0";
-    previewBox.style.display = "none";
-    kmPreviewBadge.innerText = "→ $0";
-    document.getElementById('inp-nombre').focus();
-  }
-
-  function showToast(msg, isGood) {
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toast-msg');
-    toastMsg.innerText = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
-  }
-
-  function clearAllData() {
-    if (confirm("¿Borrar TODOS los envíos y ganancias de hoy?")) {
-      deliveries = [];
-      refreshUI();
-      showToast("Historial eliminado", true);
-    }
-  }
-
-  function setNewGoal() {
-    let newMeta = prompt("Nueva meta diaria (en $):", dailyGoal);
-    if (newMeta !== null && !isNaN(parseFloat(newMeta)) && parseFloat(newMeta) >= 0) {
-      dailyGoal = parseFloat(newMeta);
-      metaValSpan.innerText = dailyGoal;
-      refreshUI();
-      showToast(`Meta actualizada: $${dailyGoal}`, true);
-      localStorageSave();
-    }
-  }
-
-  function changeName() {
-    let newName = prompt("Ingresa tu nombre:", userName);
-    if (newName && newName.trim() !== "") {
-      userName = newName.trim();
-      updateAvatarAndName();
-      localStorageSave();
-      showToast(`Hola ${userName}!`, true);
-    }
-  }
-
-  function updateAvatarAndName() {
-    displayNameSpan.innerText = userName;
-    let initials = userName.substring(0,2).toUpperCase();
-    if (initials.length < 2 && userName.length>0) initials = userName[0].toUpperCase();
-    if (initials === "") initials = "RV";
-    avatarInitials.innerText = initials;
-  }
-
-  // clock
-  function updateClock() {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('clock').innerText = timeStr;
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-
-  // local storage
-  function localStorageSave() {
-    const data = {
-      deliveries: deliveries,
-      dailyGoal: dailyGoal,
-      userName: userName
-    };
-    localStorage.setItem('repartoFacilData', JSON.stringify(data));
-  }
-
-  function loadLocalData() {
-    const saved = localStorage.getItem('repartoFacilData');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.deliveries && Array.isArray(data.deliveries)) deliveries = data.deliveries;
-        if (data.dailyGoal) dailyGoal = data.dailyGoal;
-        if (data.userName) userName = data.userName;
-        refreshUI();
-      } catch(e) {}
-    }
-    metaValSpan.innerText = dailyGoal;
-    updateAvatarAndName();
-    refreshUI();
-  }
-
-  // limpiar si se desea fecha de hoy? mantenemos, pero entregas persistentes.
-  // verificar si son de hoy? en esta version simplificada todo es del día actual (no diferenciamos dias, pero podria resetearse manualmente)
-  // agregamos un botón de nuevo día? pero el usuario puede borrar.
-  window.addDelivery = addDelivery;
-  window.clearAllData = clearAllData;
-  window.setNewGoal = setNewGoal;
-  window.changeName = changeName;
-  window.showTab = function(tab) {
-    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
-    if (tab === 'registrar') {
-      document.getElementById('panel-registrar').classList.add('active');
-      document.getElementById('tab-registrar').classList.add('active');
-    } else if (tab === 'historial') {
-      document.getElementById('panel-historial').classList.add('active');
-      document.getElementById('tab-historial').classList.add('active');
-    }
-  };
-  // eventos
-  kmInput.addEventListener('input', function() { updatePreviewByKm(); });
-  inpNombre.addEventListener('input', function() { updatePreviewByKm(); });
-  inpPague.addEventListener('input', function() { updatePreviewByKm(); });
-
-  // inicializar tabla visible y primera preview
-  updatePreviewByKm();
+  function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  function showToast(msg, good) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  window.clearAllData = () => { if(confirm("Borrar todos los envíos?")){ deliveries=[]; extraPrivate=false; extraRain=false; refreshUI(); showToast("Todo eliminado",true); } };
+  window.setNewGoal = () => { let nm=prompt("Nueva meta diaria ($):",dailyGoal); if(nm && !isNaN(parseFloat(nm))){ dailyGoal=parseFloat(nm); metaValSpan.innerText=dailyGoal; refreshUI(); } };
+  window.changeName = () => { let nn=prompt("Nombre:",userName); if(nn?.trim()){ userName=nn.trim(); displayNameSpan.innerText=userName; avatarInitials.innerText=userName.substring(0,2).toUpperCase(); localStorageSave(); } };
+  function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  setInterval(updateClock,1000); updateClock();
+  function localStorageSave() { localStorage.setItem('deliverytrack_data_v4', JSON.stringify({ deliveries, dailyGoal, userName })); }
+  function loadLocalData() { const s=localStorage.getItem('deliverytrack_data_v4'); if(s){ try{ const d=JSON.parse(s); if(d.deliveries) deliveries=d.deliveries; if(d.dailyGoal) dailyGoal=d.dailyGoal; if(d.userName) userName=d.userName; refreshUI(); }catch(e){} } metaValSpan.innerText=dailyGoal; displayNameSpan.innerText=userName; avatarInitials.innerText=userName.substring(0,2).toUpperCase(); }
+  window.showTab = (tab) => { document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active')); if(tab==='registrar'){ document.getElementById('panel-registrar').classList.add('active'); document.getElementById('tab-registrar').classList.add('active'); } else { document.getElementById('panel-historial').classList.add('active'); document.getElementById('tab-historial').classList.add('active'); } };
+  
+  kmInput.addEventListener('input', updatePreview);
+  inpNombre.addEventListener('input', updatePreview);
+  if(inpPague) inpPague.addEventListener('input', updatePreview);
+  setPaymentMode('digital');
   loadLocalData();
-  // Por defecto si no hay datos ejemplo visual
-  if(deliveries.length === 0){
-    // solo para mostrar la tabla de tarifas
-  }
-  // Ajuste de estilo adicional
-  const styleExtra = document.createElement('style');
-  styleExtra.innerText = `.tariff-table { margin-top: 8px; } .km-badge { background:#0F172A; } .submit-btn:active { transform: scale(0.98); }`;
-  document.head.appendChild(styleExtra);
+  updatePreview();
 </script>
 </body>
 </html>

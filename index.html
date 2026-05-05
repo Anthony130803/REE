@@ -1,246 +1,798 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0A0A0A" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Reparto Fácil" />
-  <meta name="description" content="Tu app de reparto y ganancias" />
-  <title>Reparto Fácil</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="icon" href="icons/icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Reparto Fácil">
+  <meta name="description" content="Tu app de reparto y ganancias por kilómetro">
+  <title>Reparto Fácil · Tarifa por KM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: #0B0F1A;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #F0F3FA;
+      padding: 0;
+      margin: 0;
+    }
+
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #0B0F1A;
+      min-height: 100vh;
+      box-shadow: 0 0 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 12px 20px;
+      background: #0B0F1A;
+      border-bottom: 1px solid #1E293B;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #10B981, #059669);
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    }
+    .topbar-name {
+      font-weight: 700;
+      font-size: 17px;
+    }
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #9CA3AF;
+      margin-top: 4px;
+    }
+    .online-dot {
+      width: 8px;
+      height: 8px;
+      background: #10B981;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 0 2px #0B0F1A;
+    }
+    .time-badge {
+      background: #1E293B;
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-family: monospace;
+      font-weight: 500;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      color: #CBD5E1;
+    }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(145deg, #0F172A, #0B0F1A);
+      margin: 16px 16px 0 16px;
+      padding: 24px 20px;
+      border-radius: 32px;
+      border: 1px solid #1E293B;
+    }
+    .hero-label {
+      font-size: 14px;
+      color: #94A3B8;
+      letter-spacing: 0.5px;
+    }
+    .hero-amount {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 8px 0 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .hero-amount span:first-child {
+      font-size: 32px;
+    }
+    .hero-sub {
+      font-size: 14px;
+      color: #94A3B8;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      background: #1E293B;
+      height: 8px;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: #10B981;
+      width: 0%;
+      height: 100%;
+      border-radius: 20px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #94A3B8;
+    }
+
+    /* STATS */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin: 20px 16px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: #111827;
+      padding: 14px 20px;
+      border-radius: 28px;
+      flex: 1;
+      text-align: center;
+      border: 1px solid #1F2A3E;
+    }
+    .stat-val {
+      font-size: 26px;
+      font-weight: 800;
+    }
+    .green { color: #34D399; }
+    .amber { color: #FBBF24; }
+    .blue { color: #60A5FA; }
+    .stat-lbl {
+      font-size: 12px;
+      color: #9CA3AF;
+      margin-top: 4px;
+    }
+
+    /* TABS */
+    .nav-tabs {
+      display: flex;
+      margin: 8px 16px 16px;
+      gap: 12px;
+      background: #0F172A;
+      padding: 6px;
+      border-radius: 60px;
+    }
+    .nav-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 10px 0;
+      font-weight: 600;
+      font-size: 15px;
+      border-radius: 40px;
+      color: #94A3B8;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .nav-tab.active {
+      background: #10B981;
+      color: #0B0F1A;
+      box-shadow: 0 2px 8px rgba(16,185,129,0.2);
+    }
+    .tab-panel {
+      display: none;
+      padding: 0 16px 20px;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* FORM */
+    .section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 18px;
+    }
+    .add-card {
+      background: #111827;
+      border-radius: 32px;
+      padding: 20px;
+      margin-top: 12px;
+      border: 1px solid #1F2A3E;
+    }
+    .field {
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #CBD5E1;
+    }
+    input {
+      width: 100%;
+      background: #1E293B;
+      border: 1px solid #2D3A4E;
+      padding: 14px 16px;
+      border-radius: 28px;
+      font-size: 15px;
+      color: white;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #10B981;
+    }
+    /* km input wrapper */
+    .km-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .km-group input {
+      flex: 1;
+    }
+    .km-badge {
+      background: #0F172A;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #FBBF24;
+      border: 1px solid #2D3A4E;
+      white-space: nowrap;
+    }
+    .tariff-table {
+      background: #0F172A;
+      border-radius: 24px;
+      padding: 4px 0;
+      margin: 16px 0;
+      border: 1px solid #1E293B;
+    }
+    .tariff-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid #1E293B;
+      font-size: 13px;
+    }
+    .tariff-row:last-child {
+      border-bottom: none;
+    }
+    .tariff-range {
+      font-weight: 500;
+      color: #CBD5E1;
+    }
+    .tariff-price {
+      font-weight: 700;
+      color: #10B981;
+    }
+    .preview-box {
+      background: #0F172A;
+      border-radius: 28px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      border-left: 4px solid #10B981;
+    }
+    .submit-btn {
+      background: #10B981;
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 48px;
+      font-weight: 800;
+      font-size: 17px;
+      color: #0B0F1A;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 8px;
+    }
+    .submit-btn:active {
+      transform: scale(0.97);
+      background: #059669;
+    }
+
+    /* HISTORIAL */
+    .order-count-badge {
+      font-size: 13px;
+      background: #1E293B;
+      padding: 4px 12px;
+      border-radius: 40px;
+    }
+    #orders-list {
+      margin-top: 12px;
+    }
+    .order-card {
+      background: #111827;
+      border-radius: 24px;
+      padding: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #1F2A3E;
+    }
+    .order-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .order-name {
+      font-weight: 700;
+    }
+    .order-meta {
+      font-size: 12px;
+      color: #9CA3AF;
+      display: flex;
+      gap: 12px;
+    }
+    .order-earn {
+      font-weight: 800;
+      font-size: 20px;
+      color: #34D399;
+    }
+    .empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: #6B7280;
+    }
+    .empty-icon {
+      font-size: 48px;
+      opacity: 0.5;
+    }
+
+    /* BOTTOM BAR */
+    .bottombar {
+      background: #0F172A;
+      border-top: 1px solid #1E293B;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+    }
+    .bb-left {
+      display: flex;
+      flex-direction: column;
+    }
+    .bb-label {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+    .bb-amount {
+      font-size: 24px;
+      font-weight: 800;
+      color: #34D399;
+    }
+    .icon-btn {
+      background: #1E293B;
+      border: none;
+      font-size: 22px;
+      padding: 10px;
+      width: 48px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.1s;
+      color: #CBD5E1;
+    }
+    .icon-btn:active {
+      background: #334155;
+    }
+    .bb-right {
+      display: flex;
+      gap: 12px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: #1E293B;
+      backdrop-filter: blur(12px);
+      padding: 10px 20px;
+      border-radius: 60px;
+      display: flex;
+      gap: 10px;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.2s;
+      z-index: 999;
+      font-weight: 500;
+    }
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
+    .toast-dot {
+      width: 10px;
+      height: 10px;
+      background: #10B981;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    @media (max-width: 480px) {
+      .hero-amount { font-size: 40px; }
+      .stat-val { font-size: 22px; }
+    }
+  </style>
 </head>
 <body>
-
 <div class="app" id="app">
+  <div class="toast" id="toast"><span class="toast-dot"></span><span id="toast-msg">Envío añadido</span></div>
 
-  <!-- TOAST -->
-  <div class="toast" id="toast">
-    <span class="toast-dot" id="toast-dot"></span>
-    <span id="toast-msg">Envío registrado</span>
-  </div>
-
-  <!-- TOP BAR -->
   <header class="topbar">
     <div class="topbar-left">
-      <div class="avatar" id="avatar-initials">JR</div>
-      <div>
-        <div class="topbar-name" id="display-name">Mi Cuenta</div>
-        <div class="topbar-status"><span class="online-dot"></span>En línea</div>
-      </div>
+      <div class="avatar" id="avatar-initials">RV</div>
+      <div><div class="topbar-name" id="display-name">Repartidor</div><div class="topbar-status"><span class="online-dot"></span>En línea</div></div>
     </div>
     <div class="time-badge" id="clock">--:--</div>
   </header>
 
-  <!-- HERO -->
   <section class="hero">
     <div class="hero-label">Ganancias de hoy</div>
     <div class="hero-amount"><span>$</span><span id="hero-val">0.00</span></div>
     <div class="hero-sub">De <b id="hero-envios">0 envíos</b> completados hoy</div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-    </div>
-    <div class="progress-label">
-      <span>$0</span>
-      <span>Meta: $<span id="meta-val">500</span></span>
-    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label"><span>$0</span><span>Meta: $<span id="meta-val">500</span></span></div>
   </section>
 
-  <!-- STATS -->
   <div class="stats-row">
-    <div class="stat">
-      <div class="stat-val green" id="s-count">0</div>
-      <div class="stat-lbl">Envíos</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val amber" id="s-cobrar">$0</div>
-      <div class="stat-lbl">Por cobrar</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val blue" id="s-pague">$0</div>
-      <div class="stat-lbl">Pagué</div>
-    </div>
-    <div class="stat" id="km-stat" style="display:none;">
-      <div class="stat-val purple" id="s-km">0 km</div>
-      <div class="stat-lbl">Recorridos</div>
-    </div>
+    <div class="stat"><div class="stat-val green" id="s-count">0</div><div class="stat-lbl">Envíos</div></div>
+    <div class="stat"><div class="stat-val amber" id="s-cobrar">$0</div><div class="stat-lbl">Por cobrar</div></div>
+    <div class="stat"><div class="stat-val blue" id="s-pague">$0</div><div class="stat-lbl">Pagué</div></div>
   </div>
 
-  <!-- TABS -->
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-registrar" onclick="showTab('registrar')">📋 Registrar</button>
-    <button class="nav-tab" id="tab-mapa"      onclick="showTab('mapa')">🗺️ Mapa</button>
     <button class="nav-tab" id="tab-historial" onclick="showTab('historial')">📜 Historial</button>
   </div>
 
-  <!-- ══════════ TAB: REGISTRAR ══════════ -->
+  <!-- TAB REGISTRAR -->
   <div id="panel-registrar" class="tab-panel active">
-    <section class="section">
-      <div class="section-head">
-        <span class="section-title">Registrar envío</span>
-      </div>
+    <div class="section">
+      <div class="section-head"><span class="section-title">Nuevo recorrido</span></div>
       <div class="add-card">
-        <div class="type-tabs">
-          <button class="type-tab active-green" id="tab-digital" onclick="setMode('digital')">
-            <span class="tab-icon">💳</span>Ya pagado
-          </button>
-          <button class="type-tab" id="tab-cash" onclick="setMode('cash')">
-            <span class="tab-icon">💵</span>Efectivo
-          </button>
+        <div class="field">
+          <label>📦 Pedido / Cliente</label>
+          <input id="inp-nombre" placeholder="Ej: Rappi 332, PedidosYa..." />
         </div>
-        <div class="form-body">
 
-          <div class="field">
-            <label>Restaurante / Pedido</label>
-            <input id="inp-nombre" placeholder="Ej: McDonald's, Domino's…" />
+        <div class="field">
+          <label>📏 Kilometraje recorrido (km)</label>
+          <div class="km-group">
+            <input id="inp-km" type="number" step="0.1" placeholder="Ej: 6.2" value="0" />
+            <div class="km-badge" id="km-preview-badge">→ $0</div>
           </div>
-
-          <!-- DESTINO con autocompletado -->
-          <div class="field">
-            <label>🏠 ¿A dónde vas?</label>
-            <div class="dest-input-wrap">
-              <input id="inp-destino" class="maps-input" placeholder="Buscar dirección del cliente…" autocomplete="off" />
-              <button class="dest-clear-btn" onclick="clearRoutePreview()" title="Limpiar">✕</button>
-            </div>
-          </div>
-
-          <!-- BARRA DE INFO DE RUTA (aparece al calcular) -->
-          <div id="route-info-bar" class="route-info-bar" style="display:none;">
-            <div class="ri-item">
-              <span class="ri-icon">📏</span>
-              <span id="ri-dist">—</span>
-            </div>
-            <div class="ri-item">
-              <span class="ri-icon">⏱️</span>
-              <span id="ri-time">—</span>
-            </div>
-            <div class="ri-item highlight">
-              <span class="ri-icon">💵</span>
-              <span id="ri-fare">—</span>
-            </div>
-            <button class="nav-launch-btn" onclick="startNavigation()" title="Navegar">
-              🧭 Navegar
-            </button>
-          </div>
-
-          <!-- EFECTIVO -->
-          <div id="cash-extra" style="display:none;">
-            <div class="field-row">
-              <div class="field">
-                <label>Pagué en tienda</label>
-                <input id="inp-pague" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
-              </div>
-              <div class="field">
-                <label>Tarifa envío</label>
-                <input id="inp-envio" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
-              </div>
-            </div>
-          </div>
-
-          <!-- DIGITAL -->
-          <div id="digital-extra">
-            <div class="field">
-              <label>Tarifa de envío (tu ganancia)</label>
-              <input id="inp-envio2" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
-            </div>
-          </div>
-
-          <!-- PREVIEW -->
-          <div id="preview-box" class="preview-box" style="display:none;">
-            <div id="preview-content"></div>
-          </div>
-
-          <button class="submit-btn green" id="submit-btn" onclick="addOrder()">
-            <span>＋</span> Agregar envío
-          </button>
         </div>
-      </div>
-    </section>
-  </div>
 
-  <!-- ══════════ TAB: MAPA ══════════ -->
-  <div id="panel-mapa" class="tab-panel">
-    <div id="main-map-container">
+        <!-- TABLA DE TARIFAS POR KM -->
+        <div class="tariff-table" id="tariff-table">
+          <div class="tariff-row"><span class="tariff-range">0 km  →  menos de 5 km</span><span class="tariff-price">$50</span></div>
+          <div class="tariff-row"><span class="tariff-range">5 km  →  5.99 km</span><span class="tariff-price">$60</span></div>
+          <div class="tariff-row"><span class="tariff-range">6 km  →  6.99 km</span><span class="tariff-price">$70</span></div>
+          <div class="tariff-row"><span class="tariff-range">7 km  →  7.99 km</span><span class="tariff-price">$80</span></div>
+          <div class="tariff-row"><span class="tariff-range">8 km  →  8.99 km</span><span class="tariff-price">$90</span></div>
+          <div class="tariff-row"><span class="tariff-range">9 km  →  9.99 km</span><span class="tariff-price">$100</span></div>
+          <div class="tariff-row"><span class="tariff-range">10 km o más</span><span class="tariff-price">$110 + $5/km extra</span></div>
+        </div>
 
-      <!-- MAPA -->
-      <div id="main-map"></div>
+        <div id="preview-box" class="preview-box" style="display:none;">
+          <div id="preview-content"></div>
+        </div>
 
-      <!-- Controles flotantes -->
-      <div class="map-controls">
-        <button class="map-btn" onclick="centerOnMe()" title="Mi ubicación">📍</button>
-      </div>
+        <div class="field" style="margin-top: 4px;">
+          <label>💰 ¿Pagaste en tienda? (efectivo a reembolsar)</label>
+          <input id="inp-pague" type="number" step="1" placeholder="$0 (opcional)" value="0" />
+        </div>
 
-      <!-- Buscador flotante sobre el mapa (estilo Didi/Uber) -->
-      <div class="map-search-box">
-        <span class="map-search-icon">🔍</span>
-        <input id="inp-destino-map" class="map-search-input" placeholder="¿A dónde vas?" autocomplete="off" readonly
-          onclick="showTab('registrar'); document.getElementById('inp-destino').focus()" />
-      </div>
-
-    </div>
-
-    <!-- Lista rutas del día -->
-    <div id="routes-list" class="routes-list">
-      <div class="empty">
-        <span class="empty-icon">🗺️</span>
-        <p>Registra envíos con destino<br>y aparecerán aquí.</p>
+        <button class="submit-btn" id="submit-btn" onclick="addDelivery()">➕ Agregar envío</button>
       </div>
     </div>
   </div>
 
-  <!-- ══════════ TAB: HISTORIAL ══════════ -->
+  <!-- TAB HISTORIAL -->
   <div id="panel-historial" class="tab-panel">
-    <section class="section">
-      <div class="section-head">
-        <span class="section-title">Historial de hoy</span>
-        <span id="order-count" class="order-count-badge">0 registros</span>
-      </div>
-      <div id="orders-list">
-        <div class="empty">
-          <span class="empty-icon">🛵</span>
-          <p>Aún no hay envíos.<br>Agrega tu primer entrega arriba.</p>
-        </div>
-      </div>
-    </section>
+    <div class="section">
+      <div class="section-head" style="display: flex; justify-content: space-between;"><span class="section-title">Historial de hoy</span><span id="order-count" class="order-count-badge">0 registros</span></div>
+      <div id="orders-list"><div class="empty"><span class="empty-icon">🛵</span><p>Agrega tu primer envío con kilometraje</p></div></div>
+    </div>
   </div>
 
+  <footer class="bottombar">
+    <div class="bb-left"><span class="bb-label">Total ganancias</span><span class="bb-amount" id="bb-total">$0.00</span></div>
+    <div class="bb-right"><button class="icon-btn" onclick="clearAllData()">🗑️</button><button class="icon-btn" onclick="setNewGoal()">🎯</button><button class="icon-btn" onclick="changeName()">👤</button></div>
+  </footer>
 </div>
 
-<!-- BOTTOM BAR -->
-<footer class="bottombar">
-  <div class="bb-left">
-    <span class="bb-label">Total ganancias</span>
-    <span class="bb-amount" id="bb-total">$0.00</span>
-  </div>
-  <div class="bb-right">
-    <button class="icon-btn" title="Borrar todo"    onclick="clearAll()">🗑️</button>
-    <button class="icon-btn" title="Ajustar meta"   onclick="setMeta()">🎯</button>
-    <button class="icon-btn" title="Cambiar nombre" onclick="setName()">👤</button>
-  </div>
-</footer>
-
-<!-- Google Maps — reemplaza TU_API_KEY -->
-<script src="js/app.js"></script>
-<script src="js/maps.js"></script>
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=places,geometry&callback=initMaps&loading=async"
-  async defer>
-</script>
-
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
+  // ---------- TARIFA SEGÚN KILOMETRAJE ----------
+  function getRateByKm(km) {
+    if (km === undefined || km === null) km = 0;
+    if (km < 5) return 50;
+    if (km >= 5 && km < 6) return 60;
+    if (km >= 6 && km < 7) return 70;
+    if (km >= 7 && km < 8) return 80;
+    if (km >= 8 && km < 9) return 90;
+    if (km >= 9 && km < 10) return 100;
+    if (km >= 10) {
+      let base = 110;
+      let extraKms = Math.floor(km - 10);
+      return base + (extraKms * 5);
+    }
+    return 50;
   }
-</script>
 
+  // data model
+  let deliveries = [];      // { id, nombre, km, earning, pague, timestamp }
+  let dailyGoal = 500;
+  let userName = "Repartidor";
+
+  // DOM elements
+  const heroVal = document.getElementById('hero-val');
+  const heroEnvios = document.getElementById('hero-envios');
+  const progressFill = document.getElementById('progress-fill');
+  const metaValSpan = document.getElementById('meta-val');
+  const sCount = document.getElementById('s-count');
+  const sCobrar = document.getElementById('s-cobrar');
+  const sPague = document.getElementById('s-pague');
+  const bbTotal = document.getElementById('bb-total');
+  const ordersListDiv = document.getElementById('orders-list');
+  const orderCountSpan = document.getElementById('order-count');
+  const avatarInitials = document.getElementById('avatar-initials');
+  const displayNameSpan = document.getElementById('display-name');
+  const kmInput = document.getElementById('inp-km');
+  const kmPreviewBadge = document.getElementById('km-preview-badge');
+  const previewBox = document.getElementById('preview-box');
+  const previewContent = document.getElementById('preview-content');
+  const inpNombre = document.getElementById('inp-nombre');
+  const inpPague = document.getElementById('inp-pague');
+
+  // helpers
+  function updatePreviewByKm() {
+    let kmVal = parseFloat(kmInput.value);
+    if (isNaN(kmVal) || kmVal < 0) kmVal = 0;
+    const earning = getRateByKm(kmVal);
+    kmPreviewBadge.innerText = `→ $${earning}`;
+    // mostrar preview
+    if (kmVal > 0 || (inpNombre.value.trim() !== "")) {
+      previewBox.style.display = "block";
+      let pagueExtra = parseFloat(inpPague.value);
+      if (isNaN(pagueExtra)) pagueExtra = 0;
+      let net = earning - pagueExtra;
+      let netMsg = net >= 0 ? `ganancia neta $${net.toFixed(2)}` : `debes restar $${Math.abs(net).toFixed(2)}`;
+      previewContent.innerHTML = `📊 ${kmVal.toFixed(1)} km → tarifa envío: <strong>$${earning}</strong><br>${pagueExtra > 0 ? `💸 Pagaste $${pagueExtra} → ${netMsg}` : `✨ Ganancia limpia $${earning}`}`;
+    } else {
+      if (kmVal === 0 && inpNombre.value.trim() === "") previewBox.style.display = "none";
+      else previewBox.style.display = "block";
+    }
+  }
+
+  function refreshUI() {
+    // total ganancias acumuladas = suma de earnings
+    let totalEarnings = deliveries.reduce((sum, d) => sum + d.earning, 0);
+    let totalPaidByMe = deliveries.reduce((sum, d) => sum + (d.pague || 0), 0);
+    let netCashCollect = totalEarnings - totalPaidByMe;
+    if (netCashCollect < 0) netCashCollect = 0; // no mostrar negativo en por cobrar, pero igual.
+    let count = deliveries.length;
+    heroVal.innerText = totalEarnings.toFixed(2);
+    heroEnvios.innerText = count;
+    let percent = (totalEarnings / dailyGoal) * 100;
+    progressFill.style.width = Math.min(percent, 100) + "%";
+    sCount.innerText = count;
+    sCobrar.innerText = `$${netCashCollect.toFixed(2)}`;
+    sPague.innerText = `$${totalPaidByMe.toFixed(2)}`;
+    bbTotal.innerText = `$${totalEarnings.toFixed(2)}`;
+    orderCountSpan.innerText = `${count} registro${count !== 1 ? 's' : ''}`;
+    renderHistory();
+    updateAvatarAndName();
+    localStorageSave();
+  }
+
+  function renderHistory() {
+    if (!deliveries.length) {
+      ordersListDiv.innerHTML = `<div class="empty"><span class="empty-icon">🛵</span><p>Sin envíos aún.<br>Agrega distancia y gana por km</p></div>`;
+      return;
+    }
+    let html = "";
+    deliveries.slice().reverse().forEach(d => {
+      let pagueStr = d.pague > 0 ? ` | Pagué: $${d.pague}` : "";
+      html += `
+        <div class="order-card">
+          <div class="order-info">
+            <div class="order-name">${escapeHtml(d.nombre) || "Pedido"}</div>
+            <div class="order-meta">📏 ${d.km.toFixed(1)} km • tarifa $${d.earning}${pagueStr}</div>
+            <div class="order-meta">🕒 ${new Date(d.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+          </div>
+          <div class="order-earn">+$${d.earning}</div>
+        </div>
+      `;
+    });
+    ordersListDiv.innerHTML = html;
+  }
+
+  function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+  function addDelivery() {
+    let nombre = inpNombre.value.trim();
+    if (nombre === "") {
+      showToast("Escribe el nombre del pedido o cliente", false);
+      return;
+    }
+    let kmVal = parseFloat(kmInput.value);
+    if (isNaN(kmVal) || kmVal < 0) {
+      showToast("Ingresa un kilometraje válido (ej: 6.2)", false);
+      return;
+    }
+    let pagueVal = parseFloat(inpPague.value);
+    if (isNaN(pagueVal)) pagueVal = 0;
+
+    const earning = getRateByKm(kmVal);
+    // Crear envío
+    const newDelivery = {
+      id: Date.now(),
+      nombre: nombre,
+      km: kmVal,
+      earning: earning,
+      pague: pagueVal,
+      timestamp: new Date().toISOString()
+    };
+    deliveries.push(newDelivery);
+    refreshUI();
+    showToast(`${nombre} • ${kmVal.toFixed(1)} km → $${earning}`, true);
+    // reset campos opcionales pero mantener nombre sugerencia
+    inpNombre.value = "";
+    kmInput.value = "";
+    inpPague.value = "0";
+    previewBox.style.display = "none";
+    kmPreviewBadge.innerText = "→ $0";
+    document.getElementById('inp-nombre').focus();
+  }
+
+  function showToast(msg, isGood) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    toastMsg.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  function clearAllData() {
+    if (confirm("¿Borrar TODOS los envíos y ganancias de hoy?")) {
+      deliveries = [];
+      refreshUI();
+      showToast("Historial eliminado", true);
+    }
+  }
+
+  function setNewGoal() {
+    let newMeta = prompt("Nueva meta diaria (en $):", dailyGoal);
+    if (newMeta !== null && !isNaN(parseFloat(newMeta)) && parseFloat(newMeta) >= 0) {
+      dailyGoal = parseFloat(newMeta);
+      metaValSpan.innerText = dailyGoal;
+      refreshUI();
+      showToast(`Meta actualizada: $${dailyGoal}`, true);
+      localStorageSave();
+    }
+  }
+
+  function changeName() {
+    let newName = prompt("Ingresa tu nombre:", userName);
+    if (newName && newName.trim() !== "") {
+      userName = newName.trim();
+      updateAvatarAndName();
+      localStorageSave();
+      showToast(`Hola ${userName}!`, true);
+    }
+  }
+
+  function updateAvatarAndName() {
+    displayNameSpan.innerText = userName;
+    let initials = userName.substring(0,2).toUpperCase();
+    if (initials.length < 2 && userName.length>0) initials = userName[0].toUpperCase();
+    if (initials === "") initials = "RV";
+    avatarInitials.innerText = initials;
+  }
+
+  // clock
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('clock').innerText = timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // local storage
+  function localStorageSave() {
+    const data = {
+      deliveries: deliveries,
+      dailyGoal: dailyGoal,
+      userName: userName
+    };
+    localStorage.setItem('repartoFacilData', JSON.stringify(data));
+  }
+
+  function loadLocalData() {
+    const saved = localStorage.getItem('repartoFacilData');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.deliveries && Array.isArray(data.deliveries)) deliveries = data.deliveries;
+        if (data.dailyGoal) dailyGoal = data.dailyGoal;
+        if (data.userName) userName = data.userName;
+        refreshUI();
+      } catch(e) {}
+    }
+    metaValSpan.innerText = dailyGoal;
+    updateAvatarAndName();
+    refreshUI();
+  }
+
+  // limpiar si se desea fecha de hoy? mantenemos, pero entregas persistentes.
+  // verificar si son de hoy? en esta version simplificada todo es del día actual (no diferenciamos dias, pero podria resetearse manualmente)
+  // agregamos un botón de nuevo día? pero el usuario puede borrar.
+  window.addDelivery = addDelivery;
+  window.clearAllData = clearAllData;
+  window.setNewGoal = setNewGoal;
+  window.changeName = changeName;
+  window.showTab = function(tab) {
+    document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+    if (tab === 'registrar') {
+      document.getElementById('panel-registrar').classList.add('active');
+      document.getElementById('tab-registrar').classList.add('active');
+    } else if (tab === 'historial') {
+      document.getElementById('panel-historial').classList.add('active');
+      document.getElementById('tab-historial').classList.add('active');
+    }
+  };
+  // eventos
+  kmInput.addEventListener('input', function() { updatePreviewByKm(); });
+  inpNombre.addEventListener('input', function() { updatePreviewByKm(); });
+  inpPague.addEventListener('input', function() { updatePreviewByKm(); });
+
+  // inicializar tabla visible y primera preview
+  updatePreviewByKm();
+  loadLocalData();
+  // Por defecto si no hay datos ejemplo visual
+  if(deliveries.length === 0){
+    // solo para mostrar la tabla de tarifas
+  }
+  // Ajuste de estilo adicional
+  const styleExtra = document.createElement('style');
+  styleExtra.innerText = `.tariff-table { margin-top: 8px; } .km-badge { background:#0F172A; } .submit-btn:active { transform: scale(0.98); }`;
+  document.head.appendChild(styleExtra);
+</script>
 </body>
 </html>

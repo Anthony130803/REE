@@ -181,8 +181,8 @@ body {
   height: 100%;
   background: var(--green);
   border-radius: 4px;
-  transition: width 0.5s ease;
-  max-width: 100%;
+  transition: width 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  width: 0%;
 }
 
 .progress-label {
@@ -207,6 +207,7 @@ body {
   border-radius: var(--radius-sm);
   padding: 12px 10px;
   text-align: center;
+  transition: transform 0.15s;
 }
 
 .stat-val {
@@ -338,42 +339,85 @@ body {
   gap: 8px;
 }
 
+/* ── TARIFF CARD ───────────────────────────── */
+.tariff-card {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+}
+
+.tariff-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.tariff-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tariff-item {
+  background: var(--surface3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tariff-item span:first-child { color: var(--text2); }
+.tariff-item span:last-child { color: var(--amber); font-weight: 700; margin-left: 4px; }
+
+/* ── TOGGLES ───────────────────────────────── */
+.toggle-group {
+  display: flex;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  padding: 6px 14px;
+  border-radius: 40px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+
+.toggle-item.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
+
+.toggle-item.active span { color: #000; }
+
 /* ── PREVIEW BOX ───────────────────────────── */
 .preview-box {
   background: var(--surface2);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 12px;
   margin-bottom: 12px;
   border-left: 3px solid var(--green);
 }
 
-.preview-box.amber { border-left-color: var(--amber); }
+.preview-content {
+  font-weight: 700;
+  font-size: 15px;
+}
 
-.preview-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
+.preview-detail {
+  font-size: 12px;
   color: var(--text2);
-  padding: 3px 0;
+  margin-top: 6px;
 }
-
-.preview-row.total {
-  color: var(--text1);
-  font-weight: 700;
-  font-size: 14px;
-  border-top: 1px solid var(--border);
-  margin-top: 5px;
-  padding-top: 7px;
-}
-
-.preview-row.earn {
-  color: var(--green);
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.preview-row.earn.amber-earn { color: var(--amber); }
 
 /* ── SUBMIT BTN ────────────────────────────── */
 .submit-btn {
@@ -385,16 +429,19 @@ body {
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  background: var(--green);
+  color: #000;
 }
 
-.submit-btn.green { background: var(--green); color: #000; }
-.submit-btn.amber { background: var(--amber); color: #000; }
-.submit-btn:active { transform: scale(0.97); opacity: 0.9; }
+.submit-btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
 
 /* ── ORDER CARDS ───────────────────────────── */
 .order-card {
@@ -406,12 +453,23 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  animation: fadeUp 0.25s ease;
+  animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  transition: all 0.2s;
 }
 
-@keyframes fadeUp {
-  from { transform: translateY(8px); opacity: 0; }
-  to   { transform: translateY(0);   opacity: 1; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.order-card.pending {
+  border-left: 3px solid var(--amber);
+  background: linear-gradient(90deg, rgba(255,149,0,0.05), var(--surface));
+}
+
+.order-card.paid {
+  border-left: 3px solid var(--green);
+  opacity: 0.85;
 }
 
 .order-icon {
@@ -425,8 +483,8 @@ body {
   flex-shrink: 0;
 }
 
-.order-icon.green { background: rgba(6,  193, 103, 0.12); }
-.order-icon.amber { background: rgba(255, 149,   0, 0.12); }
+.order-icon.green { background: rgba(6,193,103,0.12); }
+.order-icon.amber { background: rgba(255,149,0,0.12); }
 
 .order-info {
   flex: 1;
@@ -436,10 +494,11 @@ body {
 .order-name {
   font-size: 14px;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin-bottom: 3px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .order-detail {
@@ -448,17 +507,29 @@ body {
   line-height: 1.5;
 }
 
-.order-tag {
-  display: inline-block;
-  padding: 2px 7px;
-  border-radius: 20px;
+.status-badge {
   font-size: 10px;
-  font-weight: 600;
-  margin-right: 4px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  background: #2E2E2E;
 }
 
-.tag-paid { background: rgba(6,193,103,0.15); color: var(--green); }
-.tag-cash { background: rgba(255,149,0,0.15);  color: var(--amber); }
+.pay-btn {
+  background: var(--amber);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+  cursor: pointer;
+  transition: 0.15s;
+  font-family: inherit;
+}
+
+.pay-btn:active { transform: scale(0.95); }
 
 .order-right {
   text-align: right;
@@ -471,15 +542,10 @@ body {
   color: var(--green);
 }
 
-.order-cobrar-val {
-  font-size: 11px;
+.order-pending-amount {
+  font-size: 12px;
   color: var(--amber);
-  margin-top: 1px;
-}
-
-.order-time {
-  font-size: 10px;
-  color: var(--text3);
+  font-weight: 600;
   margin-top: 2px;
 }
 
@@ -492,7 +558,6 @@ body {
   padding: 4px;
   line-height: 1;
   transition: color 0.15s;
-  margin-left: 2px;
   font-family: inherit;
 }
 
@@ -615,6 +680,69 @@ body {
   flex-shrink: 0;
 }
 
+/* ── KM INPUT ROW ──────────────────────────── */
+.km-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.km-row input { flex: 1; }
+
+.base-badge {
+  background: var(--surface3);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  color: var(--amber);
+  white-space: nowrap;
+}
+
+/* ── NAVIGATION TABS ───────────────────────── */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+}
+
+.nav-tab.active {
+  background: var(--green);
+  color: #000;
+  border-color: transparent;
+  transform: scale(0.98);
+}
+
+.tab-panel {
+  display: none;
+  animation: fadeIn 0.25s ease;
+}
+
+.tab-panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── DIVIDER ───────────────────────────────── */
 .divider {
   height: 1px;
@@ -627,240 +755,3 @@ body {
   .hero-amount { font-size: 36px; }
   .stat-val    { font-size: 15px; }
 }
-
-/* ============================================
-   NUEVOS ESTILOS — Google Maps + Tabs
-   ============================================ */
-
-/* ── NAVIGATION TABS ─────────────────────────── */
-.nav-tabs {
-  display: flex;
-  gap: 6px;
-  padding: 0 16px 12px;
-  background: var(--bg);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.nav-tab {
-  flex: 1;
-  padding: 10px 4px;
-  border: none;
-  border-radius: 10px;
-  background: var(--card);
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-  border: 1px solid rgba(255,255,255,.06);
-}
-
-.nav-tab.active {
-  background: var(--green);
-  color: #000;
-  border-color: transparent;
-}
-
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ── MAPS INPUTS ─────────────────────────────── */
-.maps-input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: 12px center;
-  padding-left: 36px !important;
-}
-
-/* ── MINI MAP ────────────────────────────────── */
-#mini-map-container {
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 14px;
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-#mini-map {
-  width: 100%;
-  height: 160px;
-  background: #1a1a1a;
-}
-
-.route-info {
-  padding: 10px 14px;
-  background: rgba(255,255,255,.04);
-  font-size: 13px;
-  color: var(--text-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-}
-
-.route-info span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text);
-  font-weight: 500;
-}
-
-/* ── MAIN MAP ────────────────────────────────── */
-#main-map-container {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  margin: 0 16px 16px;
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-#main-map {
-  width: 100%;
-  height: 300px;
-  background: #1a1a1a;
-}
-
-.map-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.map-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(10,10,10,.85);
-  backdrop-filter: blur(10px);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255,255,255,.1);
-}
-
-/* ── ROUTES LIST ─────────────────────────────── */
-.routes-list {
-  padding: 0 16px 100px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.route-card {
-  background: var(--card);
-  border-radius: 14px;
-  padding: 14px;
-  border: 1px solid rgba(255,255,255,.06);
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.route-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(255,255,255,.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.route-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.route-name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.route-addr {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.route-meta {
-  font-size: 11px;
-  color: var(--text-muted);
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.route-meta span { color: var(--text); font-weight: 500; }
-
-.route-show-btn {
-  background: rgba(255,255,255,.06);
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: var(--text-muted);
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  font-family: inherit;
-}
-
-/* ── STATS PURPLE ────────────────────────────── */
-.purple { color: #B084FF; }
-
-/* ── SECTION BADGE ───────────────────────────── */
-.section-badge {
-  background: rgba(255,255,255,.06);
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* ── Google Maps autocomplete dropdown dark mode ── */
-.pac-container {
-  background: #1c1c1e !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
-  font-family: 'DM Sans', sans-serif !important;
-  margin-top: 4px;
-}
-
-.pac-item {
-  border-top: 1px solid rgba(255,255,255,.06) !important;
-  color: #e0e0e0 !important;
-  padding: 10px 14px !important;
-  font-size: 13px !important;
-  cursor: pointer;
-}
-
-.pac-item:hover, .pac-item-selected {
-  background: rgba(255,255,255,.06) !important;
-}
-
-.pac-item-query {
-  color: #fff !important;
-  font-size: 13px !important;
-}
-
-.pac-icon { display: none !important; }

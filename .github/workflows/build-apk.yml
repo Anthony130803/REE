@@ -41,18 +41,33 @@ jobs:
       - name: Copy web assets
         run: npx cap copy android
 
-      - name: Fix Kotlin duplicate classes
+      - name: Fix Kotlin duplicates en build.gradle raiz
         run: |
-          cat >> android/app/build.gradle << 'GRADLE'
+          python3 << 'PYEOF'
+          import re
 
-          configurations.all {
-              resolutionStrategy {
-                  force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
-                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
-                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+          path = 'android/build.gradle'
+          content = open(path).read()
+
+          fix = """
+          subprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+                  }
               }
           }
-          GRADLE
+          """
+
+          if 'resolutionStrategy' not in content:
+              content += fix
+              open(path, 'w').write(content)
+              print("Fix aplicado en build.gradle raiz")
+          else:
+              print("resolutionStrategy ya existe")
+          PYEOF
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew

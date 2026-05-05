@@ -1,0 +1,11 @@
+{
+  "appId": "com.deliverytrack.app",
+  "appName": "DeliveryTrack",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  },
+  "server": {
+    "cleartext": true
+  }
+}

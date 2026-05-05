@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DeliveryTrack" />
+  <meta name="description" content="Control de ganancias para repartidores con mapa de rutas" />
+  <title>DeliveryTrack — Control de Ganancias</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span class="toast-dot" id="toast-dot"></span>
+    <span id="toast-msg">Envío registrado</span>
+  </div>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="avatar" id="avatar-initials">JR</div>
+      <div>
+        <div class="topbar-name" id="display-name">Mi Cuenta</div>
+        <div class="topbar-status">
+          <span class="online-dot"></span>En línea
+        </div>
+      </div>
+    </div>
+    <div class="time-badge" id="clock">--:--</div>
+  </header>
+
+  <!-- HERO EARNINGS -->
+  <section class="hero">
+    <div class="hero-label">Ganancias de hoy</div>
+    <div class="hero-amount"><span>$</span><span id="hero-val">0.00</span></div>
+    <div class="hero-sub">De <b id="hero-envios">0 envíos</b> completados hoy</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span>$0</span>
+      <span>Meta: $<span id="meta-val">500</span></span>
+    </div>
+  </section>
+
+  <!-- QUICK STATS -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-val green" id="s-count">0</div>
+      <div class="stat-lbl">Envíos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val amber" id="s-cobrar">$0</div>
+      <div class="stat-lbl">Por cobrar</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val blue" id="s-pague">$0</div>
+      <div class="stat-lbl">Pagué</div>
+    </div>
+    <div class="stat" id="km-stat" style="display:none;">
+      <div class="stat-val purple" id="s-km">0 km</div>
+      <div class="stat-lbl">Recorridos</div>
+    </div>
+  </div>
+
+  <!-- TABS DE NAVEGACIÓN -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-registrar" onclick="showTab('registrar')">📋 Registrar</button>
+    <button class="nav-tab" id="tab-mapa" onclick="showTab('mapa')">🗺️ Mapa</button>
+    <button class="nav-tab" id="tab-historial" onclick="showTab('historial')">📜 Historial</button>
+  </div>
+
+  <!-- ===================== TAB: REGISTRAR ===================== -->
+  <div id="panel-registrar" class="tab-panel active">
+    <section class="section">
+      <div class="section-head">
+        <span class="section-title">Registrar envío</span>
+      </div>
+      <div class="add-card">
+        <div class="type-tabs">
+          <button class="type-tab active-green" id="tab-digital" onclick="setMode('digital')">
+            <span class="tab-icon">💳</span>Ya pagado
+          </button>
+          <button class="type-tab" id="tab-cash" onclick="setMode('cash')">
+            <span class="tab-icon">💵</span>Efectivo
+          </button>
+        </div>
+        <div class="form-body">
+          <div class="field">
+            <label>Restaurante / Pedido</label>
+            <input id="inp-nombre" placeholder="Ej: McDonald's, Domino's…" />
+          </div>
+
+          <!-- DIRECCIÓN CON AUTOCOMPLETADO GOOGLE MAPS -->
+          <div class="field" id="field-origen">
+            <label>📍 Origen (restaurante)</label>
+            <input id="inp-origen" class="maps-input" placeholder="Buscar dirección de recogida…" autocomplete="off" />
+          </div>
+          <div class="field" id="field-destino">
+            <label>🏠 Destino (cliente)</label>
+            <input id="inp-destino" class="maps-input" placeholder="Buscar dirección de entrega…" autocomplete="off" />
+          </div>
+
+          <!-- Mini mapa preview -->
+          <div id="mini-map-container" style="display:none;">
+            <div id="mini-map"></div>
+            <div id="route-info" class="route-info"></div>
+          </div>
+
+          <!-- EFECTIVO -->
+          <div id="cash-extra" style="display:none;">
+            <div class="field-row">
+              <div class="field">
+                <label>Pagué en tienda</label>
+                <input id="inp-pague" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
+              </div>
+              <div class="field">
+                <label>Tarifa envío</label>
+                <input id="inp-envio" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
+              </div>
+            </div>
+          </div>
+
+          <!-- DIGITAL -->
+          <div id="digital-extra">
+            <div class="field">
+              <label>Tarifa de envío (tu ganancia)</label>
+              <input id="inp-envio2" type="number" step="1" placeholder="$0.00" oninput="updatePreview()" />
+            </div>
+          </div>
+
+          <!-- PREVIEW -->
+          <div id="preview-box" class="preview-box" style="display:none;">
+            <div id="preview-content"></div>
+          </div>
+
+          <button class="submit-btn green" id="submit-btn" onclick="addOrder()">
+            <span>＋</span> Agregar envío
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== TAB: MAPA ===================== -->
+  <div id="panel-mapa" class="tab-panel">
+    <section class="section">
+      <div class="section-head">
+        <span class="section-title">🗺️ Rutas del día</span>
+        <span class="section-badge" id="map-badge">0 rutas</span>
+      </div>
+
+      <!-- Mapa principal grande -->
+      <div id="main-map-container">
+        <div id="main-map"></div>
+        <div class="map-controls">
+          <button class="map-btn" onclick="centerOnMe()" title="Mi ubicación">📍</button>
+          <button class="map-btn" onclick="showAllRoutes()" title="Ver todas las rutas">🗺️</button>
+        </div>
+      </div>
+
+      <!-- Lista de rutas -->
+      <div id="routes-list" class="routes-list">
+        <div class="empty">
+          <span class="empty-icon">🗺️</span>
+          <p>Agrega rutas al registrar envíos.<br>Aparecerán aquí en el mapa.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== TAB: HISTORIAL ===================== -->
+  <div id="panel-historial" class="tab-panel">
+    <section class="section">
+      <div class="section-head">
+        <span class="section-title">Historial de hoy</span>
+        <span id="order-count" class="order-count-badge">0 registros</span>
+      </div>
+      <div id="orders-list">
+        <div class="empty">
+          <span class="empty-icon">🛵</span>
+          <p>Aún no hay envíos.<br>Agrega tu primer entrega arriba.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div><!-- end .app -->
+
+<!-- BOTTOM BAR -->
+<footer class="bottombar">
+  <div class="bb-left">
+    <span class="bb-label">Total ganancias</span>
+    <span class="bb-amount" id="bb-total">$0.00</span>
+  </div>
+  <div class="bb-right">
+    <button class="icon-btn" title="Borrar todo" onclick="clearAll()">🗑️</button>
+    <button class="icon-btn" title="Ajustar meta" onclick="setMeta()">🎯</button>
+    <button class="icon-btn" title="Cambiar nombre" onclick="setName()">👤</button>
+  </div>
+</footer>
+
+<!-- Google Maps API — reemplaza TU_API_KEY con tu clave real -->
+<script>
+  window.MAPS_API_KEY = 'TU_API_KEY';
+</script>
+<script src="js/app.js"></script>
+<script src="js/maps.js"></script>
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=places,geometry&callback=initMaps&loading=async"
+  async defer>
+</script>
+
+<!-- Service Worker para PWA -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(r => console.log('SW registrado:', r.scope))
+        .catch(e => console.log('SW error:', e));
+    });
+  }
+</script>
+
+</body>
+</html>

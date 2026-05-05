@@ -32,28 +32,8 @@ jobs:
       - name: Preparar carpeta www
         run: |
           mkdir -p www
-          cp index.html www/
-          cp manifest.json www/
-          cp sw.js www/
-          cp -r css www/
-          cp -r js www/
-          cp -r icons www/
-
-      - name: Crear capacitor.config.json
-        run: |
-          cat > capacitor.config.json << 'CAPEOF'
-          {
-            "appId": "com.deliverytrack.app",
-            "appName": "DeliveryTrack",
-            "webDir": "www",
-            "android": {
-              "allowMixedContent": true
-            },
-            "server": {
-              "cleartext": true
-            }
-          }
-          CAPEOF
+          cp index.html manifest.json sw.js www/
+          cp -r css js icons www/
 
       - name: Add Android platform
         run: npx cap add android
@@ -65,9 +45,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build debug APK
-        run: |
-          cd android
-          ./gradlew assembleDebug --no-daemon
+        run: cd android && ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

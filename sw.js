@@ -2,7 +2,7 @@
    DeliveryTrack v2 — Service Worker (PWA)
    ============================================ */
 
-const CACHE_NAME = 'deliverytrack-v2';
+const CACHE_NAME = 'repartofacil-v1';
 const ASSETS = [
   './',
   './index.html',

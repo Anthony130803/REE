@@ -1,7 +1,7 @@
 {
-  "name": "DeliveryTrack — Control de Ganancias",
-  "short_name": "DeliveryTrack",
-  "description": "Control de ganancias para repartidores con mapa de rutas",
+  "name": "Reparto Fácil — Ganancias",
+  "short_name": "Reparto Fácil",
+  "description": "Tu app de control de ganancias para reparto",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0A0A0A",

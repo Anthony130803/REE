@@ -1,6 +1,6 @@
 {
-  "appId": "com.deliverytrack.app",
-  "appName": "DeliveryTrack",
+  "appId": "com.repartofacil.app",
+  "appName": "Reparto Fácil",
   "webDir": "www",
   "android": {
     "allowMixedContent": true

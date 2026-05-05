@@ -1,4 +1,4 @@
-name: Build APK — DeliveryTrack
+name: Build APK — Reparto Fácil
 
 on:
   push:
@@ -78,6 +78,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DeliveryTrack-debug
+          name: RepartoFacil-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30

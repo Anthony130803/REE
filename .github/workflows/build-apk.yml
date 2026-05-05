@@ -41,6 +41,19 @@ jobs:
       - name: Copy web assets
         run: npx cap copy android
 
+      - name: Fix Kotlin duplicate classes
+        run: |
+          cat >> android/app/build.gradle << 'GRADLE'
+
+          configurations.all {
+              resolutionStrategy {
+                  force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+              }
+          }
+          GRADLE
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 

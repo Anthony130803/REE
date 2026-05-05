@@ -9,19 +9,12 @@
   <meta name="apple-mobile-web-app-title" content="DeliveryTrack" />
   <meta name="description" content="Control de ganancias para repartidores con mapa de rutas" />
   <title>DeliveryTrack — Control de Ganancias</title>
-
-  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json" />
-
-  <!-- Icons -->
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="icon" href="icons/icon-192.png" />
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -40,15 +33,13 @@
       <div class="avatar" id="avatar-initials">JR</div>
       <div>
         <div class="topbar-name" id="display-name">Mi Cuenta</div>
-        <div class="topbar-status">
-          <span class="online-dot"></span>En línea
-        </div>
+        <div class="topbar-status"><span class="online-dot"></span>En línea</div>
       </div>
     </div>
     <div class="time-badge" id="clock">--:--</div>
   </header>
 
-  <!-- HERO EARNINGS -->
+  <!-- HERO -->
   <section class="hero">
     <div class="hero-label">Ganancias de hoy</div>
     <div class="hero-amount"><span>$</span><span id="hero-val">0.00</span></div>
@@ -62,7 +53,7 @@
     </div>
   </section>
 
-  <!-- QUICK STATS -->
+  <!-- STATS -->
   <div class="stats-row">
     <div class="stat">
       <div class="stat-val green" id="s-count">0</div>
@@ -82,14 +73,14 @@
     </div>
   </div>
 
-  <!-- TABS DE NAVEGACIÓN -->
+  <!-- TABS -->
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-registrar" onclick="showTab('registrar')">📋 Registrar</button>
-    <button class="nav-tab" id="tab-mapa" onclick="showTab('mapa')">🗺️ Mapa</button>
+    <button class="nav-tab" id="tab-mapa"      onclick="showTab('mapa')">🗺️ Mapa</button>
     <button class="nav-tab" id="tab-historial" onclick="showTab('historial')">📜 Historial</button>
   </div>
 
-  <!-- ===================== TAB: REGISTRAR ===================== -->
+  <!-- ══════════ TAB: REGISTRAR ══════════ -->
   <div id="panel-registrar" class="tab-panel active">
     <section class="section">
       <div class="section-head">
@@ -105,25 +96,38 @@
           </button>
         </div>
         <div class="form-body">
+
           <div class="field">
             <label>Restaurante / Pedido</label>
             <input id="inp-nombre" placeholder="Ej: McDonald's, Domino's…" />
           </div>
 
-          <!-- DIRECCIÓN CON AUTOCOMPLETADO GOOGLE MAPS -->
-          <div class="field" id="field-origen">
-            <label>📍 Origen (restaurante)</label>
-            <input id="inp-origen" class="maps-input" placeholder="Buscar dirección de recogida…" autocomplete="off" />
-          </div>
-          <div class="field" id="field-destino">
-            <label>🏠 Destino (cliente)</label>
-            <input id="inp-destino" class="maps-input" placeholder="Buscar dirección de entrega…" autocomplete="off" />
+          <!-- DESTINO con autocompletado -->
+          <div class="field">
+            <label>🏠 ¿A dónde vas?</label>
+            <div class="dest-input-wrap">
+              <input id="inp-destino" class="maps-input" placeholder="Buscar dirección del cliente…" autocomplete="off" />
+              <button class="dest-clear-btn" onclick="clearRoutePreview()" title="Limpiar">✕</button>
+            </div>
           </div>
 
-          <!-- Mini mapa preview -->
-          <div id="mini-map-container" style="display:none;">
-            <div id="mini-map"></div>
-            <div id="route-info" class="route-info"></div>
+          <!-- BARRA DE INFO DE RUTA (aparece al calcular) -->
+          <div id="route-info-bar" class="route-info-bar" style="display:none;">
+            <div class="ri-item">
+              <span class="ri-icon">📏</span>
+              <span id="ri-dist">—</span>
+            </div>
+            <div class="ri-item">
+              <span class="ri-icon">⏱️</span>
+              <span id="ri-time">—</span>
+            </div>
+            <div class="ri-item highlight">
+              <span class="ri-icon">💵</span>
+              <span id="ri-fare">—</span>
+            </div>
+            <button class="nav-launch-btn" onclick="startNavigation()" title="Navegar">
+              🧭 Navegar
+            </button>
           </div>
 
           <!-- EFECTIVO -->
@@ -161,34 +165,37 @@
     </section>
   </div>
 
-  <!-- ===================== TAB: MAPA ===================== -->
+  <!-- ══════════ TAB: MAPA ══════════ -->
   <div id="panel-mapa" class="tab-panel">
-    <section class="section">
-      <div class="section-head">
-        <span class="section-title">🗺️ Rutas del día</span>
-        <span class="section-badge" id="map-badge">0 rutas</span>
+    <div id="main-map-container">
+
+      <!-- MAPA -->
+      <div id="main-map"></div>
+
+      <!-- Controles flotantes -->
+      <div class="map-controls">
+        <button class="map-btn" onclick="centerOnMe()" title="Mi ubicación">📍</button>
       </div>
 
-      <!-- Mapa principal grande -->
-      <div id="main-map-container">
-        <div id="main-map"></div>
-        <div class="map-controls">
-          <button class="map-btn" onclick="centerOnMe()" title="Mi ubicación">📍</button>
-          <button class="map-btn" onclick="showAllRoutes()" title="Ver todas las rutas">🗺️</button>
-        </div>
+      <!-- Buscador flotante sobre el mapa (estilo Didi/Uber) -->
+      <div class="map-search-box">
+        <span class="map-search-icon">🔍</span>
+        <input id="inp-destino-map" class="map-search-input" placeholder="¿A dónde vas?" autocomplete="off" readonly
+          onclick="showTab('registrar'); document.getElementById('inp-destino').focus()" />
       </div>
 
-      <!-- Lista de rutas -->
-      <div id="routes-list" class="routes-list">
-        <div class="empty">
-          <span class="empty-icon">🗺️</span>
-          <p>Agrega rutas al registrar envíos.<br>Aparecerán aquí en el mapa.</p>
-        </div>
+    </div>
+
+    <!-- Lista rutas del día -->
+    <div id="routes-list" class="routes-list">
+      <div class="empty">
+        <span class="empty-icon">🗺️</span>
+        <p>Registra envíos con destino<br>y aparecerán aquí.</p>
       </div>
-    </section>
+    </div>
   </div>
 
-  <!-- ===================== TAB: HISTORIAL ===================== -->
+  <!-- ══════════ TAB: HISTORIAL ══════════ -->
   <div id="panel-historial" class="tab-panel">
     <section class="section">
       <div class="section-head">
@@ -204,7 +211,7 @@
     </section>
   </div>
 
-</div><!-- end .app -->
+</div>
 
 <!-- BOTTOM BAR -->
 <footer class="bottombar">
@@ -213,16 +220,13 @@
     <span class="bb-amount" id="bb-total">$0.00</span>
   </div>
   <div class="bb-right">
-    <button class="icon-btn" title="Borrar todo" onclick="clearAll()">🗑️</button>
-    <button class="icon-btn" title="Ajustar meta" onclick="setMeta()">🎯</button>
+    <button class="icon-btn" title="Borrar todo"    onclick="clearAll()">🗑️</button>
+    <button class="icon-btn" title="Ajustar meta"   onclick="setMeta()">🎯</button>
     <button class="icon-btn" title="Cambiar nombre" onclick="setName()">👤</button>
   </div>
 </footer>
 
-<!-- Google Maps API — reemplaza TU_API_KEY con tu clave real -->
-<script>
-  window.MAPS_API_KEY = 'AIzaSyCshaM4aCFmAb2BwVlbaw5OxVqbzfGnx9o';
-</script>
+<!-- Google Maps — reemplaza TU_API_KEY -->
 <script src="js/app.js"></script>
 <script src="js/maps.js"></script>
 <script
@@ -230,13 +234,10 @@
   async defer>
 </script>
 
-<!-- Service Worker para PWA -->
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(r => console.log('SW registrado:', r.scope))
-        .catch(e => console.log('SW error:', e));
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
 </script>

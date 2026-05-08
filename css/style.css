@@ -891,48 +891,63 @@ body {
 
 /* ── EXTRAS ROW (Residencial / Lluvia) ──────── */
 .extras-row {
-  display: flex;
-  gap: 10px;
-  margin: 12px 0 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0 14px;
+  width: 100%;
 }
 .extra-toggle {
-  flex: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 10px;
-  border-radius: 12px;
+  gap: 5px;
+  padding: 10px 8px;
+  border-radius: 10px;
   border: 1.5px solid var(--border2);
   background: var(--surface2);
   color: var(--text2);
   font-family: 'Syne', sans-serif;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all .2s;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .extra-toggle.active {
   border-color: var(--amber);
   background: var(--amber-dim);
   color: var(--text1);
 }
-.extra-icon { font-size: 16px; }
-.extra-label { font-weight: 600; flex: 1; text-align: left; }
+.extra-icon { font-size: 15px; flex-shrink: 0; }
+.extra-label { font-weight: 700; flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .extra-badge {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--amber);
-  background: rgba(255,171,0,0.12);
-  padding: 2px 6px;
-  border-radius: 6px;
+  background: rgba(255,171,0,0.15);
+  padding: 2px 5px;
+  border-radius: 5px;
+  flex-shrink: 0;
 }
 .extra-check {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--amber);
   opacity: 0;
-  transition: opacity .2s;
+  transition: opacity .18s;
+  flex-shrink: 0;
+  width: 0;
+  overflow: hidden;
 }
-.extra-toggle.active .extra-check { opacity: 1; }
+.extra-toggle.active .extra-check {
+  opacity: 1;
+  width: auto;
+}
 
 .extras-row-preview {
   color: var(--amber) !important;

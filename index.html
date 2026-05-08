@@ -15,6 +15,71 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ── EXTRAS ROW (Residencial / Lluvia) ── */
+    .extras-row {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0 4px;
+    }
+    .extra-toggle {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: #8A9BB0;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .extra-toggle.active {
+      border-color: #3B82F6;
+      background: rgba(59,130,246,0.12);
+      color: #fff;
+    }
+    .extra-label { font-weight: 600; flex: 1; text-align: left; }
+    .extra-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #3B82F6;
+      background: rgba(59,130,246,0.15);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .extra-toggle.active .extra-badge {
+      background: rgba(59,130,246,0.3);
+      color: #93C5FD;
+    }
+    .extra-check {
+      font-size: 12px;
+      color: #3B82F6;
+      opacity: 0;
+      transition: opacity .2s;
+      font-weight: 700;
+    }
+    .extra-toggle.active .extra-check { opacity: 1; }
+
+    /* ── DELETE BUTTON for movements ── */
+    .mov-delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #EF4444;
+      opacity: 0.5;
+      font-size: 16px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: opacity .2s, background .2s;
+      line-height: 1;
+    }
+    .mov-delete-btn:hover { opacity: 1; background: rgba(239,68,68,0.1); }
+    .order-item-actions { display: flex; align-items: center; gap: 6px; }
+  </style>
 </head>
 <body>
 
@@ -230,6 +295,22 @@
         </div>
       </div>
 
+      <!-- EXTRAS: Residencial / Lluvia -->
+      <div class="extras-row">
+        <button class="extra-toggle" id="toggle-residencial" onclick="toggleExtra('residencial')" type="button">
+          <span class="extra-icon">🏘️</span>
+          <span class="extra-label">Residencial</span>
+          <span class="extra-badge">+$10</span>
+          <span class="extra-check" id="check-residencial">✓</span>
+        </button>
+        <button class="extra-toggle" id="toggle-lluvia" onclick="toggleExtra('lluvia')" type="button">
+          <span class="extra-icon">🌧️</span>
+          <span class="extra-label">Lluvia</span>
+          <span class="extra-badge">+$10</span>
+          <span class="extra-check" id="check-lluvia">✓</span>
+        </button>
+      </div>
+
       <!-- PREVIEW COBRO -->
       <div id="preview-box" class="preview-box" style="display:none">
         <div id="preview-content"></div>
@@ -272,6 +353,174 @@
 
 <script src="js/app.js"></script>
 <script>
+  /* ── EXTRAS: Residencial + Lluvia ── */
+  window._extras = { residencial: false, lluvia: false };
+
+  window.toggleExtra = function(type) {
+    window._extras[type] = !window._extras[type];
+    const btn = document.getElementById('toggle-' + type);
+    btn.classList.toggle('active', window._extras[type]);
+    if (typeof updatePreview === 'function') updatePreview();
+  };
+
+  /* Patch getExtrasTotal so app.js can pick it up if needed */
+  window.getExtrasTotal = function() {
+    let t = 0;
+    if (window._extras.residencial) t += 10;
+    if (window._extras.lluvia) t += 10;
+    return t;
+  };
+
+  /* Reset extras after each order */
+  const _origConfirmOrder = window.confirmOrder;
+  document.addEventListener('DOMContentLoaded', () => {
+    // Patch confirmOrder to also reset extras
+    const origConfirm = window.confirmOrder;
+    if (origConfirm) {
+      window.confirmOrder = function() {
+        origConfirm();
+        window._extras.residencial = false;
+        window._extras.lluvia = false;
+        document.getElementById('toggle-residencial').classList.remove('active');
+        document.getElementById('toggle-lluvia').classList.remove('active');
+      };
+    }
+
+    /* ── PATCH updatePreview to include extras ── */
+    const origUpdatePreview = window.updatePreview;
+    if (origUpdatePreview) {
+      window.updatePreview = function() {
+        origUpdatePreview();
+        // Inject extras into preview if it exists
+        const extras = window.getExtrasTotal();
+        const previewBox = document.getElementById('preview-box');
+        if (extras > 0 && previewBox && previewBox.style.display !== 'none') {
+          // Add extras line if not already there
+          let extrasLine = document.getElementById('extras-preview-line');
+          if (!extrasLine) {
+            extrasLine = document.createElement('div');
+            extrasLine.id = 'extras-preview-line';
+            extrasLine.style.cssText = 'display:flex;justify-content:space-between;font-size:13px;color:#93C5FD;margin-top:4px';
+            const previewContent = document.getElementById('preview-content');
+            if (previewContent) previewContent.appendChild(extrasLine);
+          }
+          let labels = [];
+          if (window._extras.residencial) labels.push('Residencial');
+          if (window._extras.lluvia) labels.push('Lluvia');
+          extrasLine.innerHTML = `<span>+ ${labels.join(' + ')}</span><span>+$${extras}</span>`;
+        } else {
+          const extrasLine = document.getElementById('extras-preview-line');
+          if (extrasLine) extrasLine.remove();
+        }
+      };
+    }
+
+    /* ── PATCH requestCobro to include extras in modal ── */
+    const origRequestCobro = window.requestCobro;
+    if (origRequestCobro) {
+      window.requestCobro = function() {
+        // Temporarily patch modal amount to add extras
+        const extras = window.getExtrasTotal();
+        origRequestCobro();
+        if (extras > 0) {
+          const amountEl = document.getElementById('modal-amount');
+          const breakdownEl = document.getElementById('modal-breakdown');
+          if (amountEl) {
+            // Parse current amount and add extras
+            const cur = parseFloat(amountEl.textContent.replace(/[^0-9.]/g,'')) || 0;
+            const newTotal = cur + extras;
+            amountEl.textContent = '$' + newTotal.toFixed(2);
+            // Store in global for confirmOrder
+            window._pendingExtras = extras;
+          }
+          if (breakdownEl) {
+            let labels = [];
+            if (window._extras.residencial) labels.push('🏘️ Residencial +$10');
+            if (window._extras.lluvia) labels.push('🌧️ Lluvia +$10');
+            const extrasDiv = document.createElement('div');
+            extrasDiv.style.cssText = 'color:#93C5FD;font-size:13px;margin-top:4px';
+            extrasDiv.textContent = labels.join('  ');
+            breakdownEl.appendChild(extrasDiv);
+          }
+        }
+      };
+    }
+
+    /* ── DELETE MOVEMENTS ── */
+    // Patch renderMovs / renderHistorial to add delete buttons
+    const patchMovsList = () => {
+      const movsList = document.getElementById('movs-list');
+      if (!movsList) return;
+      const observer = new MutationObserver(() => {
+        movsList.querySelectorAll('.order-item, .mov-item, [class*="mov"]').forEach(item => {
+          if (item.querySelector('.mov-delete-btn')) return;
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'mov-delete-btn';
+          deleteBtn.title = 'Borrar';
+          deleteBtn.innerHTML = '🗑';
+          deleteBtn.onclick = function(e) {
+            e.stopPropagation();
+            if (!confirm('¿Borrar este movimiento?')) return;
+            // Try to find index from data attribute or position
+            const allItems = [...movsList.querySelectorAll('.order-item, .mov-item, [class*="mov-row"]')];
+            const idx = allItems.indexOf(item);
+            if (idx !== -1) deleteMovimiento(idx);
+          };
+          // Append to item
+          item.style.position = 'relative';
+          const wrap = document.createElement('div');
+          wrap.className = 'order-item-actions';
+          wrap.appendChild(deleteBtn);
+          item.appendChild(wrap);
+        });
+      });
+      observer.observe(movsList, { childList: true, subtree: true });
+    };
+
+    patchMovsList();
+
+    // Global delete function that works with localStorage key "movimientos"
+    window.deleteMovimiento = function(idx) {
+      try {
+        // Try common localStorage keys
+        const keys = ['movimientos', 'movs', 'movements', 'repartofacil_movs'];
+        for (const key of keys) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr) && arr[idx] !== undefined) {
+              arr.splice(idx, 1);
+              localStorage.setItem(key, JSON.stringify(arr));
+              // Refresh view
+              if (typeof showHistTab === 'function') showHistTab('movs');
+              else if (typeof renderMovimientos === 'function') renderMovimientos();
+              else location.reload();
+              showToast && showToast('Movimiento borrado');
+              return;
+            }
+          }
+        }
+        // Fallback: scan all localStorage keys
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          try {
+            const v = JSON.parse(localStorage.getItem(k));
+            if (Array.isArray(v) && v.length > 0 && v[0] && (v[0].tipo || v[0].type || v[0].monto || v[0].amount)) {
+              if (v[idx] !== undefined) {
+                v.splice(idx, 1);
+                localStorage.setItem(k, JSON.stringify(v));
+                if (typeof showHistTab === 'function') showHistTab('movs');
+                else location.reload();
+                window.showToast && showToast('Movimiento borrado');
+                return;
+              }
+            }
+          } catch(e) {}
+        }
+      } catch(e) { console.error(e); }
+    };
+  });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }

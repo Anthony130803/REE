@@ -1,11 +1,6 @@
 {
   "appId": "com.repartofacil.app",
-  "appName": "Reparto Fácil",
+  "appName": "Reparto Facil",
   "webDir": "www",
-  "android": {
-    "allowMixedContent": true
-  },
-  "server": {
-    "cleartext": true
-  }
+  "android": { "allowMixedContent": true }
 }

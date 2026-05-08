@@ -12,6 +12,7 @@ let movimientos = [];
 let mode        = 'digital';
 let histTab     = 'hoy';
 let _pendingOrder = null;
+let extras      = { residencial: false, lluvia: false }; // +$10 cada uno
 
 const KEYS = {
   orders: 'rf_orders',
@@ -28,6 +29,19 @@ const KEYS = {
   updateStats();
   startClock();
   applyName();
+
+  // Extras buttons — usar click Y touchend para máxima compatibilidad móvil
+  document.querySelectorAll('.extra-toggle[data-extra]').forEach(btn => {
+    const type = btn.dataset.extra;
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      toggleExtra(type);
+    });
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      toggleExtra(type);
+    }, { passive: false });
+  });
 })();
 
 // ── RELOJ ─────────────────────────────────────────────
@@ -73,6 +87,29 @@ function showHistTab(name) {
   }
 }
 
+// ── EXTRAS (Residencial / Lluvia) ─────────────────────
+function toggleExtra(type) {
+  extras[type] = !extras[type];
+  const btn = document.getElementById('toggle-' + type);
+  if (extras[type]) {
+    btn.classList.add('active');
+  } else {
+    btn.classList.remove('active');
+  }
+  updatePreview();
+}
+
+function getExtrasTotal() {
+  return (extras.residencial ? 10 : 0) + (extras.lluvia ? 10 : 0);
+}
+
+function resetExtras() {
+  extras.residencial = false;
+  extras.lluvia = false;
+  document.getElementById('toggle-residencial').classList.remove('active');
+  document.getElementById('toggle-lluvia').classList.remove('active');
+}
+
 // ── MODO PAGO ─────────────────────────────────────────
 function setMode(m) {
   mode = m;
@@ -83,7 +120,9 @@ function setMode(m) {
 
   const btn = document.getElementById('submit-btn');
   btn.classList.toggle('amber-mode', m === 'cash');
+  btn.textContent = m === 'cash' ? 'Guardar como pendiente 💰' : 'Registrar envio';
 
+  resetExtras();
   clearFormPartial();
   document.getElementById('preview-box').style.display = 'none';
 }
@@ -119,28 +158,38 @@ function onKmInput() {
   if (inp) { inp.value = fare; updatePreview(); }
 }
 
-// ── PREVIEW EN TIEMPO REAL ────────────────────────────
 function updatePreview() {
-  const envio = getEnvio();
-  const pague = getPague();
-  const pb    = document.getElementById('preview-box');
-  const pc    = document.getElementById('preview-content');
+  const envio  = getEnvio();
+  const pague  = getPague();
+  const extAmt = getExtrasTotal();
+  const pb     = document.getElementById('preview-box');
+  const pc     = document.getElementById('preview-content');
 
   if (envio <= 0 && pague <= 0) { pb.style.display = 'none'; return; }
 
   pb.style.display = 'block';
 
+  const extrasLine = extAmt > 0
+    ? `<div class="preview-row extras-row-preview">
+        <span>${extras.residencial && extras.lluvia ? '🏘️ Residencial + 🌧️ Lluvia' : extras.residencial ? '🏘️ Residencial' : '🌧️ Lluvia'}</span>
+        <span>+$${extAmt}</span>
+       </div>`
+    : '';
+
   if (mode === 'digital') {
+    const ganancia = envio + extAmt;
     pc.innerHTML = `
       <div class="preview-row">
         <span>Tipo</span><span>Pedido en linea / tarjeta</span>
       </div>
+      ${extrasLine}
       <div class="preview-row earn">
         <span>Tu ganancia</span>
-        <span>${fmt(envio)}</span>
+        <span>${fmt(ganancia)}</span>
       </div>`;
   } else {
-    const cobrar = pague + envio;
+    const cobrar  = pague + envio;
+    const ganancia = envio + extAmt;
     pc.innerHTML = `
       <div class="preview-row">
         <span>Pague en tienda</span><span>${fmt(pague)}</span>
@@ -148,17 +197,18 @@ function updatePreview() {
       <div class="preview-row">
         <span>Tarifa de envio</span><span>${fmt(envio)}</span>
       </div>
+      ${extrasLine}
       <div class="preview-divider"></div>
       <div class="preview-row total">
         <span>Cobrar al cliente</span><span>${fmt(cobrar)}</span>
       </div>
       <div class="preview-row earn">
-        <span>Tu ganancia</span><span>${fmt(envio)}</span>
+        <span>Tu ganancia</span><span>${fmt(ganancia)}</span>
       </div>`;
   }
 }
 
-// ── PEDIR CONFIRMACION DE COBRO (modal estilo Didi) ───
+// ── REGISTRAR ENVIO (efectivo = pendiente, digital = modal) ──
 function requestCobro() {
   const nombre = (document.getElementById('inp-nombre').value.trim()) || 'Entrega';
   const envio  = getEnvio();
@@ -170,32 +220,55 @@ function requestCobro() {
     return;
   }
 
-  _pendingOrder = { nombre, envio, pague, mode, km };
+  if (mode === 'cash') {
+    // EFECTIVO: registrar directo como pendiente de cobro, sin modal
+    const now = new Date();
+    const extAmt = getExtrasTotal();
+    orders.unshift({
+      id:       Date.now(),
+      nombre,
+      envio:    envio + extAmt,
+      pague,
+      cobrar:   pague + envio,
+      mode:     'cash',
+      km,
+      cobrado:  false,   // <-- pendiente
+      extras:   { ...extras },
+      time:     pad(now.getHours()) + ':' + pad(now.getMinutes()),
+      date:     dateKey(now),
+    });
+    saveJSON(KEYS.orders, orders);
+    render();
+    updateStats();
+    clearForm();
+    resetExtras();
+    showToast('Pendiente de cobrar 💰', 'amber');
+    showTab('historial');
+    showHistTab('hoy');
+    return;
+  }
 
-  // Construir modal
-  const cobrar = mode === 'cash' ? pague + envio : envio;
+  // DIGITAL: flujo normal con modal
+  const extAmt = getExtrasTotal();
+  _pendingOrder = { nombre, envio: envio + extAmt, pague, mode, km };
 
-  document.getElementById('modal-amount').textContent = fmt(cobrar);
-  document.getElementById('modal-amount').style.color =
-    mode === 'cash' ? 'var(--amber)' : 'var(--green)';
+  document.getElementById('modal-amount').textContent = fmt(envio + extAmt);
+  document.getElementById('modal-amount').style.color = 'var(--green)';
 
   const confirmBtn = document.getElementById('modal-confirm-btn');
-  confirmBtn.className = 'modal-btn-primary' + (mode === 'cash' ? ' amber-mode' : '');
+  confirmBtn.className = 'modal-btn-primary';
+
+  const extrasHtml = extAmt > 0
+    ? `<div class="modal-bd-row"><span>${extras.residencial && extras.lluvia ? '🏘️ Residencial + 🌧️ Lluvia' : extras.residencial ? '🏘️ Residencial' : '🌧️ Lluvia'}</span><span>+$${extAmt}</span></div>`
+    : '';
 
   const bd = document.getElementById('modal-breakdown');
-  if (mode === 'digital') {
-    bd.innerHTML = `
-      <div class="modal-bd-row"><span>Tipo de pedido</span><span>Tarjeta / app</span></div>
-      ${km > 0 ? `<div class="modal-bd-row"><span>Distancia</span><span>${km.toFixed(1)} km</span></div>` : ''}
-      <div class="modal-bd-row"><span>Nombre</span><span>${escHtml(nombre)}</span></div>
-      <div class="modal-bd-row total"><span>Tu ganancia</span><span>${fmt(envio)}</span></div>`;
-  } else {
-    bd.innerHTML = `
-      <div class="modal-bd-row"><span>Pague en tienda</span><span>${fmt(pague)}</span></div>
-      <div class="modal-bd-row"><span>Tarifa de envio</span><span>${fmt(envio)}</span></div>
-      ${km > 0 ? `<div class="modal-bd-row"><span>Distancia</span><span>${km.toFixed(1)} km</span></div>` : ''}
-      <div class="modal-bd-row total"><span>Cobrar al cliente</span><span>${fmt(pague + envio)}</span></div>`;
-  }
+  bd.innerHTML = `
+    <div class="modal-bd-row"><span>Tipo de pedido</span><span>Tarjeta / app</span></div>
+    ${km > 0 ? `<div class="modal-bd-row"><span>Distancia</span><span>${km.toFixed(1)} km</span></div>` : ''}
+    ${extrasHtml}
+    <div class="modal-bd-row"><span>Nombre</span><span>${escHtml(nombre)}</span></div>
+    <div class="modal-bd-row total"><span>Tu ganancia</span><span>${fmt(envio + extAmt)}</span></div>`;
 
   document.getElementById('modal-cobro').style.display = 'flex';
 }
@@ -205,10 +278,46 @@ function closeModal() {
   _pendingOrder = null;
 }
 
+// ── COBRAR UN PEDIDO EFECTIVO PENDIENTE ───────────────
+function cobrarPedido(id) {
+  const order = orders.find(o => o.id === id);
+  if (!order || order.cobrado) return;
+
+  _pendingOrder = { ...order, _cobrarId: id };
+
+  document.getElementById('modal-amount').textContent = fmt(order.cobrar);
+  document.getElementById('modal-amount').style.color = 'var(--amber)';
+
+  const confirmBtn = document.getElementById('modal-confirm-btn');
+  confirmBtn.className = 'modal-btn-primary amber-mode';
+
+  const bd = document.getElementById('modal-breakdown');
+  bd.innerHTML = `
+    <div class="modal-bd-row"><span>Pague en tienda</span><span>${fmt(order.pague)}</span></div>
+    <div class="modal-bd-row"><span>Tarifa de envio</span><span>${fmt(order.envio)}</span></div>
+    ${order.km > 0 ? `<div class="modal-bd-row"><span>Distancia</span><span>${order.km.toFixed(1)} km</span></div>` : ''}
+    <div class="modal-bd-row total"><span>Cobrar al cliente</span><span>${fmt(order.cobrar)}</span></div>`;
+
+  document.getElementById('modal-cobro').style.display = 'flex';
+}
+
 function confirmOrder() {
   if (!_pendingOrder) return;
-  const { nombre, envio, pague, mode: m, km } = _pendingOrder;
 
+  // Si es cobro de un pedido efectivo pendiente
+  if (_pendingOrder._cobrarId) {
+    const id = _pendingOrder._cobrarId;
+    orders = orders.map(o => o.id === id ? { ...o, cobrado: true } : o);
+    saveJSON(KEYS.orders, orders);
+    render();
+    updateStats();
+    closeModal();
+    showToast('¡Cobrado! ✓', 'green');
+    return;
+  }
+
+  // Confirmación de pedido digital
+  const { nombre, envio, pague, mode: m, km } = _pendingOrder;
   const now = new Date();
   orders.unshift({
     id:     Date.now(),
@@ -218,6 +327,7 @@ function confirmOrder() {
     cobrar: pague + envio,
     mode:   m,
     km,
+    cobrado: true,
     time:   pad(now.getHours()) + ':' + pad(now.getMinutes()),
     date:   dateKey(now),
   });
@@ -226,6 +336,7 @@ function confirmOrder() {
   render();
   updateStats();
   clearForm();
+  resetExtras();
 
   closeModal();
   showToast('Envio registrado', 'green');
@@ -239,7 +350,17 @@ function deleteOrder(id) {
   updateStats();
 }
 
-// ── BORRAR TODO ───────────────────────────────────────
+// ── ELIMINAR MOVIMIENTO ───────────────────────────────
+function deleteMovimiento(idx) {
+  if (!confirm('¿Borrar este movimiento?')) return;
+  movimientos.splice(idx, 1);
+  saveJSON(KEYS.movs, movimientos);
+  updateStats();
+  renderMovimientos();
+  showToast('Movimiento borrado', 'red');
+}
+
+
 function clearAll() {
   if (!confirm('Borrar todos los registros del dia?')) return;
   const today = dateKey(new Date());
@@ -338,7 +459,7 @@ function updateStats() {
 
   const gananciaHoy    = todayOrders.reduce((s, o) => s + o.envio, 0);
   const gananciaSemana = weekOrders.reduce((s, o)  => s + o.envio, 0);
-  const porCobrar      = todayOrders.filter(o => o.mode === 'cash').reduce((s, o) => s + o.cobrar, 0);
+  const porCobrar      = todayOrders.filter(o => o.mode === 'cash' && !o.cobrado).reduce((s, o) => s + o.cobrar, 0);
 
   // Movimientos
   const saldoInicial = (movimientos.find(m => m.type === 'inicial')?.monto) || 0;
@@ -403,23 +524,33 @@ function render() {
     return;
   }
 
-  el.innerHTML = filtered.map(o => `
-    <div class="order-card">
-      <div class="order-type-bar ${o.mode}"></div>
+  el.innerHTML = filtered.map(o => {
+    const isPending = o.mode === 'cash' && !o.cobrado;
+    const tagLabel  = o.mode === 'digital' ? 'PAGADO' :
+                      isPending ? 'POR COBRAR' : 'COBRADO';
+    const tagClass  = o.mode === 'digital' ? 'digital' :
+                      isPending ? 'pending' : 'cash';
+    return `
+    <div class="order-card ${isPending ? 'order-pending' : ''}">
+      <div class="order-type-bar ${isPending ? 'pending' : o.mode}"></div>
       <div class="order-info">
         <div class="order-name">${escHtml(o.nombre)}</div>
         <div class="order-meta">
-          <span class="order-meta-tag ${o.mode}">${o.mode === 'digital' ? 'PAGADO' : 'EFECTIVO'}</span>
+          <span class="order-meta-tag ${tagClass}">${tagLabel}</span>
           <span>${o.time}</span>
           ${o.km > 0 ? `<span>${o.km.toFixed(1)} km</span>` : ''}
         </div>
       </div>
       <div class="order-right">
-        <div class="order-earn ${o.mode}">${fmt(o.envio)}</div>
-        ${o.mode === 'cash' ? `<div class="order-cobrar">cobrar ${fmt(o.cobrar)}</div>` : ''}
+        <div class="order-earn ${isPending ? 'pending' : o.mode}">${fmt(o.envio)}</div>
+        ${isPending
+          ? `<button class="cobrar-btn" onclick="cobrarPedido(${o.id})">Cobrar ${fmt(o.cobrar)}</button>`
+          : o.mode === 'cash' ? `<div class="order-cobrar cobrado-label">✓ cobrado</div>` : ''
+        }
       </div>
       <button class="del-btn" onclick="deleteOrder(${o.id})">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── RENDER MOVIMIENTOS ────────────────────────────────
@@ -447,7 +578,7 @@ function renderMovimientos() {
   const labels = { retiro: 'Retiro', deposito: 'Deposito', inicial: 'Saldo inicial' };
   const signs  = { retiro: '-', deposito: '+', inicial: '' };
 
-  el.innerHTML = movimientos.map(m => `
+  el.innerHTML = movimientos.map((m, idx) => `
     <div class="mov-card">
       <div class="mov-icon ${m.type}">${icons[m.type]}</div>
       <div class="mov-info">
@@ -455,6 +586,7 @@ function renderMovimientos() {
         <div class="mov-nota">${m.nota ? escHtml(m.nota) : m.time}</div>
       </div>
       <div class="mov-amount ${m.type}">${signs[m.type]}${fmt(m.monto)}</div>
+      <button class="del-btn mov-del-btn" onclick="deleteMovimiento(${idx})" title="Borrar">×</button>
     </div>`).join('');
 }
 

@@ -889,6 +889,106 @@ body {
 }
 .bb-val.green { color: var(--green); }
 
+/* ── EXTRAS ROW (Residencial / Lluvia) ──────── */
+.extras-row {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0 4px;
+}
+.extra-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.extra-toggle.active {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+  color: var(--text1);
+}
+.extra-icon { font-size: 16px; }
+.extra-label { font-weight: 600; flex: 1; text-align: left; }
+.extra-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  background: rgba(255,171,0,0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.extra-check {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--amber);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.extra-toggle.active .extra-check { opacity: 1; }
+
+.extras-row-preview {
+  color: var(--amber) !important;
+  font-size: 12px;
+}
+
+/* ── PEDIDO PENDIENTE DE COBRAR ──────────────── */
+.order-type-bar.pending { background: var(--amber); }
+.order-meta-tag.pending { background: var(--amber-dim); color: var(--amber); }
+.order-earn.pending     { color: var(--amber); }
+
+.order-pending {
+  border-color: rgba(255,171,0,0.20);
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(255,171,0,0.04) 100%);
+}
+
+.cobrar-btn {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 4px 10px;
+  background: var(--amber);
+  color: #000;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s, transform .15s;
+  animation: pulseAmber 2s infinite;
+}
+.cobrar-btn:active { opacity: 0.8; transform: scale(0.96); }
+
+@keyframes pulseAmber {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,171,0,0.4); }
+  50%     { box-shadow: 0 0 0 5px rgba(255,171,0,0); }
+}
+
+.cobrado-label {
+  font-size: 10px;
+  color: var(--green);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+/* Mov delete btn */
+.mov-card { position: relative; }
+.mov-del-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 20px; height: 20px;
+}
+
 /* Utility */
 .green  { color: var(--green); }
 .amber  { color: var(--amber); }

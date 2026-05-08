@@ -1,55 +1,39 @@
-name: Build APK — Reparto Fácil
-
+name: Build APK — Reparto Facil
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-
       - name: Install Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/android @capacitor/cli
-
-      - name: Preparar carpeta www
+      - name: Preparar www
         run: |
           mkdir -p www
           cp index.html manifest.json sw.js www/
           cp -r css js icons www/
-
-      - name: Add Android platform
+      - name: Add Android
         run: npx cap add android
-
-      - name: Copy web assets
+      - name: Copy assets
         run: npx cap copy android
-
-      - name: Fix Kotlin duplicates en build.gradle raiz
+      - name: Fix Kotlin duplicates
         run: |
-          python3 << 'PYEOF'
-          import re
-
+          python3 -c "
           path = 'android/build.gradle'
           content = open(path).read()
-
-          fix = """
+          fix = '''
           subprojects {
               configurations.all {
                   resolutionStrategy {
@@ -59,22 +43,15 @@ jobs:
                   }
               }
           }
-          """
-
+          '''
           if 'resolutionStrategy' not in content:
-              content += fix
-              open(path, 'w').write(content)
-              print("Fix aplicado en build.gradle raiz")
-          else:
-              print("resolutionStrategy ya existe")
-          PYEOF
-
+              open(path, 'w').write(content + fix)
+              print('Fix OK')
+          "
       - name: Make gradlew executable
         run: chmod +x android/gradlew
-
-      - name: Build debug APK
+      - name: Build APK
         run: cd android && ./gradlew assembleDebug --no-daemon
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

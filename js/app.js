@@ -188,8 +188,8 @@ function updatePreview() {
         <span>${fmt(ganancia)}</span>
       </div>`;
   } else {
-    const cobrar  = pague + envio;
-    const ganancia = envio + extAmt;
+    const cobrar   = pague + envio + extAmt;   // cliente paga tienda + envio + extras
+    const ganancia = envio + extAmt;             // repartidor gana envio + extras
     pc.innerHTML = `
       <div class="preview-row">
         <span>Pague en tienda</span><span>${fmt(pague)}</span>
@@ -229,10 +229,10 @@ function requestCobro() {
       nombre,
       envio:    envio + extAmt,
       pague,
-      cobrar:   pague + envio,
+      cobrar:   pague + envio + extAmt,   // lo que le cobra al cliente
       mode:     'cash',
       km,
-      cobrado:  false,   // <-- pendiente
+      cobrado:  false,
       extras:   { ...extras },
       time:     pad(now.getHours()) + ':' + pad(now.getMinutes()),
       date:     dateKey(now),
@@ -291,10 +291,21 @@ function cobrarPedido(id) {
   const confirmBtn = document.getElementById('modal-confirm-btn');
   confirmBtn.className = 'modal-btn-primary amber-mode';
 
+  // Calcular tarifa base (envio sin extras)
+  const extAmt = order.extras
+    ? (order.extras.residencial ? 10 : 0) + (order.extras.lluvia ? 10 : 0)
+    : 0;
+  const tarifaBase = order.envio - extAmt;
+
+  const extrasHtml = extAmt > 0
+    ? `<div class="modal-bd-row"><span>${order.extras.residencial && order.extras.lluvia ? '🏘️ Residencial + 🌧️ Lluvia' : order.extras.residencial ? '🏘️ Residencial' : '🌧️ Lluvia'}</span><span>+$${extAmt}</span></div>`
+    : '';
+
   const bd = document.getElementById('modal-breakdown');
   bd.innerHTML = `
     <div class="modal-bd-row"><span>Pague en tienda</span><span>${fmt(order.pague)}</span></div>
-    <div class="modal-bd-row"><span>Tarifa de envio</span><span>${fmt(order.envio)}</span></div>
+    <div class="modal-bd-row"><span>Tarifa de envio</span><span>${fmt(tarifaBase)}</span></div>
+    ${extrasHtml}
     ${order.km > 0 ? `<div class="modal-bd-row"><span>Distancia</span><span>${order.km.toFixed(1)} km</span></div>` : ''}
     <div class="modal-bd-row total"><span>Cobrar al cliente</span><span>${fmt(order.cobrar)}</span></div>`;
 

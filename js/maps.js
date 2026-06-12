@@ -1,96 +1,161 @@
 /* ============================================================
-   Reparto Facil — Mapas v2
-   Leaflet + Stadia Dark tiles + OSRM + Nominatim
-   GPS automático al abrir, búsqueda mejorada con número
+   Reparto Facil — Google Maps v2
+   GPS automático, búsqueda con Geocoding, rutas con Directions API
+   Clave API incluida
    ============================================================ */
 
 'use strict';
 
-let _map          = null;
-let _routeLayer   = null;
-let _markerOrigen  = null;
-let _markerDestino = null;
-let _coordOrigen   = null;
-let _coordDestino  = null;
-let _ubicacionActual = null;
-let _searchTimeout = null;
-let _mapaIniciado  = false;
+let _map              = null;
+let _directionsRenderer = null;
+let _markerOrigen     = null;
+let _markerDestino    = null;
+let _coordOrigen      = null;
+let _coordDestino     = null;
+let _ubicacionActual  = null;
+let _searchTimeout    = null;
+let _mapaIniciado     = false;
 
-// ── INIT MAP ─────────────────────────────────────────────────
+// ── INICIALIZACIÓN (llamada por el callback de Google Maps) ──
 function initMap() {
-  if (_mapaIniciado) {
-    // Ya existe: solo invalidar tamaño y re-centrar si hay ubicación
-    if (_map) {
-      _map.invalidateSize();
-      if (_ubicacionActual) _map.setView(_ubicacionActual, 15);
-    }
-    return;
-  }
-  _mapaIniciado = true;
+  if (_mapaIniciado) return;
 
-  _map = L.map('mapa-container', {
-    center: [22.1565, -100.9855],
+  const container = document.getElementById('mapa-container');
+  if (!container) return;
+
+  // Estilo oscuro personalizado (similar a Stadia Dark)
+  const estiloOscuro = [
+    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+    {
+      featureType: 'administrative.locality',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#d59563' }]
+    },
+    {
+      featureType: 'poi',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#d59563' }]
+    },
+    {
+      featureType: 'poi.park',
+      elementType: 'geometry',
+      stylers: [{ color: '#263c3f' }]
+    },
+    {
+      featureType: 'poi.park',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#6b9a76' }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry',
+      stylers: [{ color: '#38414e' }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#212a37' }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#9ca5b3' }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry',
+      stylers: [{ color: '#746855' }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#1f2835' }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#f3d19c' }]
+    },
+    {
+      featureType: 'transit',
+      elementType: 'geometry',
+      stylers: [{ color: '#2f3948' }]
+    },
+    {
+      featureType: 'transit.station',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#d59563' }]
+    },
+    {
+      featureType: 'water',
+      elementType: 'geometry',
+      stylers: [{ color: '#17263c' }]
+    },
+    {
+      featureType: 'water',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#515c6d' }]
+    },
+    {
+      featureType: 'water',
+      elementType: 'labels.text.stroke',
+      stylers: [{ color: '#17263c' }]
+    }
+  ];
+
+  _map = new google.maps.Map(container, {
+    center: { lat: 22.1565, lng: -100.9855 },
     zoom: 13,
-    zoomControl: false,        // lo ponemos abajo a la derecha manualmente
-    attributionControl: false,
+    styles: estiloOscuro,
+    zoomControl: true,
+    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false
   });
 
-  // Tiles oscuros de Stadia (Alidade Smooth Dark) — gratis, sin API key, muy bonitos
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
-    maxZoom: 20,
-    attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-  }).addTo(_map);
+  _directionsRenderer = new google.maps.DirectionsRenderer({
+    map: _map,
+    suppressMarkers: true,
+    polylineOptions: {
+      strokeColor: '#818cf8',
+      strokeWeight: 5,
+      strokeOpacity: 0.9
+    }
+  });
 
-  // Control de zoom abajo a la derecha
-  L.control.zoom({ position: 'bottomright' }).addTo(_map);
-
-  // Atribución pequeña abajo izquierda
-  L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(_map);
-
-  // Mostrar banner de GPS en vez de pedirlo automáticamente.
-  // Android requiere un gesto del usuario para disparar el permiso.
+  _mapaIniciado = true;
   mostrarBannerGps();
 }
 
-// ── ICONOS ────────────────────────────────────────────────────
-function iconoPunto(color, size = 14) {
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      width:${size}px;height:${size}px;
-      background:${color};
-      border:2.5px solid #fff;
-      border-radius:50%;
-      box-shadow:0 2px 8px rgba(0,0,0,0.6);
-    "></div>`,
-    iconSize:   [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
+// ── ICONOS PERSONALIZADOS ────────────────────────────────────
+function crearIconoGoogle(color, size = 14) {
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" stroke="white" stroke-width="2"/>
+    </svg>
+  `;
+  return {
+    url: 'data:image/svg+xml,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(size, size),
+    anchor: new google.maps.Point(size/2, size/2)
+  };
 }
 
-function iconoUbicacion() {
-  return L.divIcon({
-    className: '',
-    html: `
-      <div style="position:relative;width:20px;height:20px;">
-        <div style="
-          position:absolute;inset:0;
-          background:rgba(66,133,244,0.25);
-          border-radius:50%;
-          animation:pulse-gps 1.8s ease-out infinite;
-        "></div>
-        <div style="
-          position:absolute;top:3px;left:3px;
-          width:14px;height:14px;
-          background:#4285F4;
-          border:2.5px solid #fff;
-          border-radius:50%;
-          box-shadow:0 2px 6px rgba(0,0,0,0.5);
-        "></div>
-      </div>`,
-    iconSize:   [20, 20],
-    iconAnchor: [10, 10],
-  });
+function iconoUbicacionGoogle() {
+  const svg = `
+    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" fill="#4285F4" stroke="white" stroke-width="2"/>
+      <circle cx="12" cy="12" r="4" fill="white"/>
+    </svg>
+  `;
+  return {
+    url: 'data:image/svg+xml,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(24, 24),
+    anchor: new google.maps.Point(12, 12)
+  };
 }
 
 // ── GPS AUTOMÁTICO ────────────────────────────────────────────
@@ -105,29 +170,34 @@ function detectarUbicacion(mostrarToast = true) {
 
   navigator.geolocation.getCurrentPosition(
     pos => {
-      _ubicacionActual = [pos.coords.latitude, pos.coords.longitude];
+      _ubicacionActual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
       if (btn) { btn.textContent = '📍'; btn.disabled = false; }
 
-      if (_map) {
-        _map.setView(_ubicacionActual, 15);
+      const banner = document.getElementById('banner-gps');
+      if (banner) banner.remove();
 
-        // Marcador de posición actual con pulso
+      if (_map) {
+        _map.setCenter(_ubicacionActual);
+        _map.setZoom(15);
+
         if (window._markerUbicacion) {
-          window._markerUbicacion.setLatLng(_ubicacionActual);
+          window._markerUbicacion.setPosition(_ubicacionActual);
         } else {
-          window._markerUbicacion = L.marker(_ubicacionActual, { icon: iconoUbicacion(), zIndexOffset: 1000 })
-            .addTo(_map)
-            .bindPopup('<b>Tu ubicación</b>');
+          window._markerUbicacion = new google.maps.Marker({
+            position: _ubicacionActual,
+            map: _map,
+            icon: iconoUbicacionGoogle(),
+            title: 'Tu ubicación',
+            zIndex: 1000
+          });
         }
       }
 
-      // Auto-rellenar el campo de origen con "Mi ubicación"
       const inpOrigen = document.getElementById('inp-origen');
       if (inpOrigen && !inpOrigen.value) {
         inpOrigen.value = 'Mi ubicación actual';
         _coordOrigen = _ubicacionActual;
-        // Si ya hay destino, calcular ruta al tiro
         if (_coordDestino) calcularRuta();
       }
 
@@ -135,117 +205,79 @@ function detectarUbicacion(mostrarToast = true) {
     },
     err => {
       if (btn) { btn.textContent = '📍'; btn.disabled = false; }
-      const msgs = { 1: 'Permiso de GPS denegado', 2: 'GPS no disponible', 3: 'GPS tardó demasiado' };
-      if (mostrarToast) showToast(msgs[err.code] || 'Error de GPS', 'red');
+
+      const banner = document.getElementById('banner-gps');
+      if (err.code === 1) {
+        if (banner) {
+          banner.className = 'banner-gps banner-gps-error';
+          banner.innerHTML = `
+            <span class="banner-gps-icon">⚠️</span>
+            <div class="banner-gps-texto">
+              GPS bloqueado. Ve a:<br>
+              <small>Configuración → Apps → Navegador → Permisos → Ubicación → Permitir</small>
+            </div>`;
+        }
+        if (mostrarToast) showToast('GPS bloqueado — revisa permisos', 'red');
+      } else {
+        if (mostrarToast) {
+          const msgs = { 2: 'GPS no disponible', 3: 'GPS tardó demasiado' };
+          showToast(msgs[err.code] || 'Error de GPS', 'amber');
+        }
+      }
     },
     { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
   );
 }
 
-// ── BÚSQUEDA DUAL: Nominatim + Photon ────────────────────────
-// Photon (Komoot) tiene mejor cobertura de números de casa en México
-// Los combinamos y quitamos duplicados por coordenada
+// ── GEOCODING (buscar dirección) usando Geocoding API ────────
 async function buscarDireccion(query, callback) {
-  if (!query || query.length < 2) return;
+  if (!query || query.length < 2) return callback([]);
 
-  const yaIncluyeSLP = /san luis|potosi|slp/i.test(query);
+  try {
+    let queryFull = query;
+    if (!/san luis|potosi|slp/i.test(query)) {
+      queryFull = `${query}, San Luis Potosí, México`;
+    }
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(queryFull)}&language=es&key=AIzaSyDMGn5pmGdAID5idUKccAPjT-F0_OJz9I0`;
+    const response = await fetch(url);
+    const data = await response.json();
 
-  // ── Nominatim (búsqueda estructurada) ──
-  const nominatimPromise = (async () => {
-    try {
-      const queryFull = yaIncluyeSLP ? query : `${query}, San Luis Potosí, México`;
-      const params = new URLSearchParams({
-        q:              queryFull,
-        format:         'json',
-        limit:          5,
-        addressdetails: 1,
-        countrycodes:   'mx',
-        dedupe:         1,
-        viewbox:        '-101.3,21.8,-100.6,22.5',
-      });
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?${params}`,
-        { headers: { 'Accept-Language': 'es-MX,es;q=0.9' } }
-      );
-      const data = await res.json();
-      // Normalizar al formato interno
-      return data.map(r => {
-        const a = r.address || {};
-        return {
-          lat:    parseFloat(r.lat),
-          lon:    parseFloat(r.lon),
-          numero: a.house_number || '',
-          calle:  a.road || a.pedestrian || a.footway || '',
-          colonia: a.suburb || a.neighbourhood || a.quarter || a.village || '',
-          ciudad: a.city || a.town || a.municipality || 'San Luis Potosí',
-          tipo:   r.type || 'place',
-          fuente: 'nominatim',
-        };
-      });
-    } catch { return []; }
-  })();
+    if (data.status !== 'OK' || !data.results.length) {
+      return callback([]);
+    }
 
-  // ── Photon / Komoot (mejor cobertura de números en MX) ──
-  const photonPromise = (async () => {
-    try {
-      const queryFull = yaIncluyeSLP ? query : `${query} San Luis Potosí`;
-      const params = new URLSearchParams({
-        q:    queryFull,
-        limit: 5,
-        lang: 'es',
-        // Bias hacia SLP
-        lat:  '22.1565',
-        lon:  '-100.9855',
-      });
-      const res = await fetch(`https://photon.komoot.io/api/?${params}`);
-      const data = await res.json();
-      return (data.features || [])
-        .filter(f => {
-          // Solo resultados de México y cerca de SLP
-          const p = f.properties || {};
-          return p.country === 'Mexico' || p.country === 'México';
-        })
-        .map(f => {
-          const p = f.properties || {};
-          const [lon, lat] = f.geometry.coordinates;
-          return {
-            lat,
-            lon,
-            numero:  p.housenumber || '',
-            calle:   p.street || p.name || '',
-            colonia: p.district || p.locality || p.suburb || '',
-            ciudad:  p.city || p.town || p.village || 'San Luis Potosí',
-            tipo:    p.type || 'place',
-            fuente:  'photon',
-          };
-        });
-    } catch { return []; }
-  })();
+    const resultados = data.results.map(res => {
+      const components = res.address_components;
+      let numero = '', calle = '', colonia = '', ciudad = 'San Luis Potosí';
 
-  // Esperar ambas y combinar
-  const [resNominatim, resPhoton] = await Promise.all([nominatimPromise, photonPromise]);
+      for (let comp of components) {
+        if (comp.types.includes('street_number')) numero = comp.long_name;
+        if (comp.types.includes('route')) calle = comp.long_name;
+        if (comp.types.includes('sublocality_level_1') || comp.types.includes('neighborhood')) colonia = comp.long_name;
+        if (comp.types.includes('locality')) ciudad = comp.long_name;
+      }
+      if (!calle && res.formatted_address) calle = res.formatted_address.split(',')[0];
 
-  // Priorizar resultados con número de casa (más exactos)
-  const todos = [...resNominatim, ...resPhoton];
-  const conNumero   = todos.filter(r => r.numero);
-  const sinNumero   = todos.filter(r => !r.numero);
-
-  // Deduplicar por proximidad (< 50 metros = mismo lugar)
-  const dedup = [];
-  for (const r of [...conNumero, ...sinNumero]) {
-    const esDuplicado = dedup.some(d => {
-      const dLat = Math.abs(d.lat - r.lat);
-      const dLon = Math.abs(d.lon - r.lon);
-      return dLat < 0.0005 && dLon < 0.0005; // ~50m
+      return {
+        lat: res.geometry.location.lat(),
+        lon: res.geometry.location.lng(),
+        numero: numero,
+        calle: calle,
+        colonia: colonia,
+        ciudad: ciudad,
+        tipo: res.types[0] || 'place',
+        fuente: 'google'
+      };
     });
-    if (!esDuplicado) dedup.push(r);
-    if (dedup.length >= 6) break;
-  }
 
-  callback(dedup);
+    callback(resultados.slice(0, 6));
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    callback([]);
+  }
 }
 
-// ── MOSTRAR SUGERENCIAS ───────────────────────────────────────
+// ── MOSTRAR SUGERENCIAS (igual que antes) ─────────────────────
 function mostrarSugerencias(resultados, contenedorId) {
   const el = document.getElementById(contenedorId);
   if (!el) return;
@@ -261,15 +293,9 @@ function mostrarSugerencias(resultados, contenedorId) {
   }
 
   el.innerHTML = resultados.map((r, i) => {
-    // Etiqueta: "Calle Número, Colonia"  o  "Calle, Colonia" si no hay número
     const lineaUno = [r.calle, r.numero].filter(Boolean).join(' ') || r.ciudad;
     const lineaDos = [r.colonia, r.ciudad].filter(Boolean).join(', ');
-
-    const iconoTipo = {
-      house: '🏠', building: '🏢', amenity: '📍',
-      shop:  '🛍️', road: '🛣️',   residential: '🏘️',
-    }[r.tipo] || (r.numero ? '🏠' : '📍');
-
+    const iconoTipo = r.numero ? '🏠' : '📍';
     return `<div class="map-suggestion" onclick="seleccionarSugerencia(${i}, '${contenedorId}')">
       <span class="sug-icon">${iconoTipo}</span>
       <div class="sug-lineas">
@@ -283,47 +309,47 @@ function mostrarSugerencias(resultados, contenedorId) {
   el.style.display = 'block';
 }
 
-// ── SELECCIONAR SUGERENCIA ────────────────────────────────────
 function seleccionarSugerencia(idx, contenedorId) {
   const el = document.getElementById(contenedorId);
   if (!el || !el._resultados) return;
 
-  const r      = el._resultados[idx];
-  const coords = [r.lat, r.lon];
-
-  // Nombre para mostrar en el input
-  const nombre = [
-    r.calle,
-    r.numero,
-    r.colonia ? `Col. ${r.colonia}` : '',
-  ].filter(Boolean).join(' ') || r.ciudad;
+  const r = el._resultados[idx];
+  const coords = { lat: r.lat, lng: r.lon };
+  const nombre = [r.calle, r.numero, r.colonia ? `Col. ${r.colonia}` : '']
+    .filter(Boolean).join(' ') || r.ciudad;
 
   el.style.display = 'none';
 
   if (contenedorId === 'sugerencias-origen') {
     document.getElementById('inp-origen').value = nombre;
     _coordOrigen = coords;
-    if (_markerOrigen) _map.removeLayer(_markerOrigen);
-    _markerOrigen = L.marker(coords, { icon: iconoPunto('#22c55e', 16) })
-      .addTo(_map)
-      .bindPopup(`<b>Origen</b><br>${escHtml(nombre)}`)
-      .openPopup();
-    _map.setView(coords, 17);
+    if (_markerOrigen) _markerOrigen.setMap(null);
+    _markerOrigen = new google.maps.Marker({
+      position: coords,
+      map: _map,
+      icon: crearIconoGoogle('#22c55e', 16),
+      title: 'Origen'
+    });
+    _map.setCenter(coords);
+    _map.setZoom(17);
   } else {
     document.getElementById('inp-destino').value = nombre;
     _coordDestino = coords;
-    if (_markerDestino) _map.removeLayer(_markerDestino);
-    _markerDestino = L.marker(coords, { icon: iconoPunto('#ef4444', 16) })
-      .addTo(_map)
-      .bindPopup(`<b>Destino</b><br>${escHtml(nombre)}`)
-      .openPopup();
-    _map.setView(coords, 17);
+    if (_markerDestino) _markerDestino.setMap(null);
+    _markerDestino = new google.maps.Marker({
+      position: coords,
+      map: _map,
+      icon: crearIconoGoogle('#ef4444', 16),
+      title: 'Destino'
+    });
+    _map.setCenter(coords);
+    _map.setZoom(17);
   }
 
   if (_coordOrigen && _coordDestino) calcularRuta();
 }
 
-// ── CALCULAR RUTA (OSRM) ──────────────────────────────────────
+// ── CALCULAR RUTA (Directions API) ────────────────────────────
 async function calcularRuta() {
   if (!_coordOrigen || !_coordDestino) {
     showToast('Pon origen y destino primero', 'amber');
@@ -333,50 +359,40 @@ async function calcularRuta() {
   const btn = document.getElementById('btn-calcular-ruta');
   if (btn) { btn.textContent = '⏳ Calculando...'; btn.disabled = true; }
 
-  const url = `https://router.project-osrm.org/route/v1/driving/` +
-    `${_coordOrigen[1]},${_coordOrigen[0]};${_coordDestino[1]},${_coordDestino[0]}` +
-    `?overview=full&geometries=geojson`;
+  const directionsService = new google.maps.DirectionsService();
 
-  try {
-    const res  = await fetch(url);
-    const data = await res.json();
+  const request = {
+    origin: _coordOrigen,
+    destination: _coordDestino,
+    travelMode: google.maps.TravelMode.DRIVING,
+    unitSystem: google.maps.UnitSystem.METRIC
+  };
 
-    if (data.code !== 'Ok' || !data.routes.length) {
-      showToast('No se pudo trazar la ruta', 'red');
-      if (btn) { btn.textContent = '🗺️ Calcular ruta'; btn.disabled = false; }
-      return;
+  directionsService.route(request, (result, status) => {
+    if (status === 'OK') {
+      _directionsRenderer.setDirections(result);
+
+      const ruta = result.routes[0];
+      const distKm = ruta.legs[0].distance.value / 1000;
+      const minutos = Math.round(ruta.legs[0].duration.value / 60);
+
+      mostrarResultadoRuta(distKm, minutos);
+
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(_coordOrigen);
+      bounds.extend(_coordDestino);
+      _map.fitBounds(bounds);
+    } else {
+      showToast('No se pudo trazar la ruta: ' + status, 'red');
     }
-
-    const ruta   = data.routes[0];
-    const distKm = ruta.distance / 1000;
-    const mins   = Math.round(ruta.duration / 60);
-
-    // Ruta con borde oscuro debajo para contraste en el mapa oscuro
-    if (_routeLayer) _map.removeLayer(_routeLayer);
-    _routeLayer = L.layerGroup([
-      L.geoJSON(ruta.geometry, { style: { color: '#1e1b4b', weight: 8,  opacity: 0.5 } }),
-      L.geoJSON(ruta.geometry, { style: { color: '#818cf8', weight: 5,  opacity: 1   } }),
-    ]).addTo(_map);
-
-    _map.fitBounds(
-      L.geoJSON(ruta.geometry).getBounds(),
-      { padding: [40, 40] }
-    );
-
-    mostrarResultadoRuta(distKm, mins);
-
-    if (btn) { btn.textContent = '🔄 Recalcular'; btn.disabled = false; }
-
-  } catch (e) {
-    showToast('Error de red al calcular ruta', 'red');
     if (btn) { btn.textContent = '🗺️ Calcular ruta'; btn.disabled = false; }
-  }
+  });
 }
 
 // ── CARD RESULTADO ────────────────────────────────────────────
 function mostrarResultadoRuta(distKm, minutos) {
   const tarifa = calcFare(distKm);
-  const el     = document.getElementById('ruta-resultado');
+  const el = document.getElementById('ruta-resultado');
   if (!el) return;
 
   el.style.display = 'block';
@@ -402,7 +418,6 @@ function mostrarResultadoRuta(distKm, minutos) {
     </button>`;
 }
 
-// ── APLICAR AL FORMULARIO ─────────────────────────────────────
 function usarTarifaDetectada(km, tarifa) {
   const inpKm = document.getElementById('inp-km');
   if (inpKm) {
@@ -421,15 +436,15 @@ function usarTarifaDetectada(km, tarifa) {
 
 // ── LIMPIAR ───────────────────────────────────────────────────
 function limpiarRuta() {
-  if (_routeLayer)   { _map.removeLayer(_routeLayer);   _routeLayer   = null; }
-  if (_markerOrigen) { _map.removeLayer(_markerOrigen); _markerOrigen  = null; }
-  if (_markerDestino){ _map.removeLayer(_markerDestino);_markerDestino = null; }
-  _coordOrigen  = null;
+  if (_directionsRenderer) _directionsRenderer.setDirections({ routes: [] });
+  if (_markerOrigen) { _markerOrigen.setMap(null); _markerOrigen = null; }
+  if (_markerDestino) { _markerDestino.setMap(null); _markerDestino = null; }
+  _coordOrigen = null;
   _coordDestino = null;
 
-  document.getElementById('inp-origen').value  = '';
+  document.getElementById('inp-origen').value = '';
   document.getElementById('inp-destino').value = '';
-  ['sugerencias-origen','sugerencias-destino'].forEach(id => {
+  ['sugerencias-origen', 'sugerencias-destino'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -450,7 +465,7 @@ function onOrigenInput() {
   }
   _searchTimeout = setTimeout(() =>
     buscarDireccion(val, res => mostrarSugerencias(res, 'sugerencias-origen')),
-  380);
+    380);
 }
 
 function onDestinoInput() {
@@ -462,7 +477,7 @@ function onDestinoInput() {
   }
   _searchTimeout = setTimeout(() =>
     buscarDireccion(val, res => mostrarSugerencias(res, 'sugerencias-destino')),
-  380);
+    380);
 }
 
 function usarUbicacionComoOrigen() {
@@ -470,9 +485,13 @@ function usarUbicacionComoOrigen() {
     _coordOrigen = _ubicacionActual;
     document.getElementById('inp-origen').value = 'Mi ubicación actual';
     document.getElementById('sugerencias-origen').style.display = 'none';
-    if (_markerOrigen) _map.removeLayer(_markerOrigen);
-    _markerOrigen = L.marker(_coordOrigen, { icon: iconoPunto('#22c55e', 16) })
-      .addTo(_map).bindPopup('<b>Origen</b><br>Tu ubicación actual').openPopup();
+    if (_markerOrigen) _markerOrigen.setMap(null);
+    _markerOrigen = new google.maps.Marker({
+      position: _coordOrigen,
+      map: _map,
+      icon: crearIconoGoogle('#22c55e', 16),
+      title: 'Origen (tu ubicación)'
+    });
     if (_coordDestino) calcularRuta();
     showToast('Origen: tu ubicación 📍', 'green');
   } else {
@@ -481,37 +500,20 @@ function usarUbicacionComoOrigen() {
   }
 }
 
-// Cerrar sugerencias al tocar fuera
-document.addEventListener('click', e => {
-  if (!e.target.closest('.map-search-wrap')) {
-    document.querySelectorAll('.sugerencias-list').forEach(el => el.style.display = 'none');
-  }
-});
-
 // ── BANNER GPS (primer uso) ───────────────────────────────────
-// Android PWA requiere gesto del usuario para dar permiso de ubicación.
-// Mostramos un banner claro en vez de pedir GPS silenciosamente.
 function mostrarBannerGps() {
-  // Si ya tenemos ubicación, no mostrar nada
   if (_ubicacionActual) return;
 
-  // Revisar si el permiso ya fue dado antes
   if (navigator.permissions) {
     navigator.permissions.query({ name: 'geolocation' }).then(result => {
       if (result.state === 'granted') {
-        // Ya tiene permiso — pedir directo sin banner
         detectarUbicacion(false);
       } else if (result.state === 'denied') {
-        // Permiso denegado — mostrar instrucciones
         mostrarAvisoPermisoDenegado();
       } else {
-        // 'prompt' — mostrar banner para que el usuario lo dispare
         insertarBannerGps();
       }
-    }).catch(() => {
-      // Navegador viejo que no soporta permissions API
-      insertarBannerGps();
-    });
+    }).catch(() => insertarBannerGps());
   } else {
     insertarBannerGps();
   }
@@ -528,8 +530,6 @@ function insertarBannerGps() {
     <span class="banner-gps-icon">📍</span>
     <span class="banner-gps-texto">Activa el GPS para detectar tu ubicación</span>
     <button class="banner-gps-btn" onclick="pedirGpsDesdeBoton()">Activar</button>`;
-
-  // Insertar antes del primer hijo del panel
   panel.insertBefore(banner, panel.firstChild);
 }
 
@@ -554,78 +554,14 @@ function mostrarAvisoPermisoDenegado() {
     <span class="banner-gps-icon">⚠️</span>
     <div class="banner-gps-texto">
       GPS bloqueado. Para activarlo:<br>
-      <small>Configuración → Apps → Chrome → Permisos → Ubicación → Permitir</small>
+      <small>Configuración → Apps → Navegador → Permisos → Ubicación → Permitir</small>
     </div>`;
   panel.insertBefore(banner, panel.firstChild);
 }
 
-// Override de detectarUbicacion para quitar el banner al éxito
-const _detectarOriginal = detectarUbicacion;
-// Parchar para quitar banner cuando funciona
-function detectarUbicacion(mostrarToast = true) {
-  if (!navigator.geolocation) {
-    if (mostrarToast) showToast('GPS no disponible en este dispositivo', 'amber');
-    return;
+// Cerrar sugerencias al tocar fuera
+document.addEventListener('click', e => {
+  if (!e.target.closest('.map-search-wrap')) {
+    document.querySelectorAll('.sugerencias-list').forEach(el => el.style.display = 'none');
   }
-
-  const btn = document.getElementById('btn-gps');
-  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      _ubicacionActual = [pos.coords.latitude, pos.coords.longitude];
-
-      if (btn) { btn.textContent = '📍'; btn.disabled = false; }
-
-      // Quitar banner si existe
-      const banner = document.getElementById('banner-gps');
-      if (banner) banner.remove();
-
-      if (_map) {
-        _map.setView(_ubicacionActual, 15);
-        if (window._markerUbicacion) {
-          window._markerUbicacion.setLatLng(_ubicacionActual);
-        } else {
-          window._markerUbicacion = L.marker(_ubicacionActual, {
-            icon: iconoUbicacion(), zIndexOffset: 1000
-          }).addTo(_map).bindPopup('<b>Tu ubicación</b>');
-        }
-      }
-
-      // Auto-rellenar origen
-      const inpOrigen = document.getElementById('inp-origen');
-      if (inpOrigen && !inpOrigen.value) {
-        inpOrigen.value = 'Mi ubicación actual';
-        _coordOrigen = _ubicacionActual;
-        if (_coordDestino) calcularRuta();
-      }
-
-      if (mostrarToast) showToast('📍 Ubicación detectada', 'green');
-    },
-    err => {
-      if (btn) { btn.textContent = '📍'; btn.disabled = false; }
-
-      const banner = document.getElementById('banner-gps');
-
-      if (err.code === 1) {
-        // PERMISSION_DENIED — mostrar instrucciones claras
-        if (banner) {
-          banner.className = 'banner-gps banner-gps-error';
-          banner.innerHTML = `
-            <span class="banner-gps-icon">⚠️</span>
-            <div class="banner-gps-texto">
-              GPS bloqueado. Ve a:<br>
-              <small>Configuración del celular → Apps → Chrome (o tu navegador) → Permisos → Ubicación → Permitir</small>
-            </div>`;
-        }
-        if (mostrarToast) showToast('GPS bloqueado — ve a Configuración → Apps', 'red');
-      } else {
-        if (mostrarToast) {
-          const msgs = { 2: 'GPS no disponible', 3: 'GPS tardó demasiado — intenta de nuevo' };
-          showToast(msgs[err.code] || 'Error de GPS', 'amber');
-        }
-      }
-    },
-    { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
-  );
-}
+});

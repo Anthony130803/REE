@@ -283,8 +283,12 @@
           class="field-input"
           placeholder="Origen — desde dónde sales"
           autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
           oninput="onOrigenInput()"
+          onfocus="onOrigenFocus()"
         />
+        <button class="btn-clear-field" id="clear-origen" onclick="limpiarCampo('origen')" style="display:none">✕</button>
         <button class="btn-gps-inline" id="btn-gps" onclick="usarUbicacionComoOrigen()" title="Usar mi ubicación">📍</button>
       </div>
       <div id="sugerencias-origen" class="sugerencias-list" style="display:none"></div>
@@ -304,8 +308,12 @@
           class="field-input"
           placeholder="Destino — a dónde vas"
           autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
           oninput="onDestinoInput()"
+          onfocus="onDestinoFocus()"
         />
+        <button class="btn-clear-field" id="clear-destino" onclick="limpiarCampo('destino')" style="display:none">✕</button>
       </div>
       <div id="sugerencias-destino" class="sugerencias-list" style="display:none"></div>
     </div>

@@ -142,41 +142,107 @@ function detectarUbicacion(mostrarToast = true) {
   );
 }
 
-// ── BÚSQUEDA DE DIRECCIONES (Nominatim mejorado) ──────────────
+// ── BÚSQUEDA DUAL: Nominatim + Photon ────────────────────────
+// Photon (Komoot) tiene mejor cobertura de números de casa en México
+// Los combinamos y quitamos duplicados por coordenada
 async function buscarDireccion(query, callback) {
   if (!query || query.length < 2) return;
 
-  // Detectar si viene número de calle para usar búsqueda estructurada
-  const tieneNumero = /\d/.test(query);
-
-  const base = 'https://nominatim.openstreetmap.org/search';
-
-  // Query enriquecido: si no incluye la ciudad, la agregamos
   const yaIncluyeSLP = /san luis|potosi|slp/i.test(query);
-  const queryFull = yaIncluyeSLP ? query : `${query}, San Luis Potosí, SLP, México`;
 
-  const params = new URLSearchParams({
-    q:              queryFull,
-    format:         'json',
-    limit:          6,
-    addressdetails: 1,
-    countrycodes:   'mx',
-    dedupe:         1,
-  });
+  // ── Nominatim (búsqueda estructurada) ──
+  const nominatimPromise = (async () => {
+    try {
+      const queryFull = yaIncluyeSLP ? query : `${query}, San Luis Potosí, México`;
+      const params = new URLSearchParams({
+        q:              queryFull,
+        format:         'json',
+        limit:          5,
+        addressdetails: 1,
+        countrycodes:   'mx',
+        dedupe:         1,
+        viewbox:        '-101.3,21.8,-100.6,22.5',
+      });
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?${params}`,
+        { headers: { 'Accept-Language': 'es-MX,es;q=0.9' } }
+      );
+      const data = await res.json();
+      // Normalizar al formato interno
+      return data.map(r => {
+        const a = r.address || {};
+        return {
+          lat:    parseFloat(r.lat),
+          lon:    parseFloat(r.lon),
+          numero: a.house_number || '',
+          calle:  a.road || a.pedestrian || a.footway || '',
+          colonia: a.suburb || a.neighbourhood || a.quarter || a.village || '',
+          ciudad: a.city || a.town || a.municipality || 'San Luis Potosí',
+          tipo:   r.type || 'place',
+          fuente: 'nominatim',
+        };
+      });
+    } catch { return []; }
+  })();
 
-  // Para búsquedas con número agregar viewbox de SLP para priorizar resultados locales
-  params.set('viewbox', '-101.2,-100.7,21.9,22.4'); // bbox SLP
-  params.set('bounded', tieneNumero ? '0' : '0');   // no restringir por si la calle queda fuera
+  // ── Photon / Komoot (mejor cobertura de números en MX) ──
+  const photonPromise = (async () => {
+    try {
+      const queryFull = yaIncluyeSLP ? query : `${query} San Luis Potosí`;
+      const params = new URLSearchParams({
+        q:    queryFull,
+        limit: 5,
+        lang: 'es',
+        // Bias hacia SLP
+        lat:  '22.1565',
+        lon:  '-100.9855',
+      });
+      const res = await fetch(`https://photon.komoot.io/api/?${params}`);
+      const data = await res.json();
+      return (data.features || [])
+        .filter(f => {
+          // Solo resultados de México y cerca de SLP
+          const p = f.properties || {};
+          return p.country === 'Mexico' || p.country === 'México';
+        })
+        .map(f => {
+          const p = f.properties || {};
+          const [lon, lat] = f.geometry.coordinates;
+          return {
+            lat,
+            lon,
+            numero:  p.housenumber || '',
+            calle:   p.street || p.name || '',
+            colonia: p.district || p.locality || p.suburb || '',
+            ciudad:  p.city || p.town || p.village || 'San Luis Potosí',
+            tipo:    p.type || 'place',
+            fuente:  'photon',
+          };
+        });
+    } catch { return []; }
+  })();
 
-  try {
-    const res  = await fetch(`${base}?${params}`, {
-      headers: { 'Accept-Language': 'es-MX,es;q=0.9' }
+  // Esperar ambas y combinar
+  const [resNominatim, resPhoton] = await Promise.all([nominatimPromise, photonPromise]);
+
+  // Priorizar resultados con número de casa (más exactos)
+  const todos = [...resNominatim, ...resPhoton];
+  const conNumero   = todos.filter(r => r.numero);
+  const sinNumero   = todos.filter(r => !r.numero);
+
+  // Deduplicar por proximidad (< 50 metros = mismo lugar)
+  const dedup = [];
+  for (const r of [...conNumero, ...sinNumero]) {
+    const esDuplicado = dedup.some(d => {
+      const dLat = Math.abs(d.lat - r.lat);
+      const dLon = Math.abs(d.lon - r.lon);
+      return dLat < 0.0005 && dLon < 0.0005; // ~50m
     });
-    const data = await res.json();
-    callback(data);
-  } catch (e) {
-    callback([]);
+    if (!esDuplicado) dedup.push(r);
+    if (dedup.length >= 6) break;
   }
+
+  callback(dedup);
 }
 
 // ── MOSTRAR SUGERENCIAS ───────────────────────────────────────
@@ -188,34 +254,28 @@ function mostrarSugerencias(resultados, contenedorId) {
     el.innerHTML = `
       <div class="map-suggestion no-results">
         <span class="sug-icon">🔍</span>
-        <span class="sug-texto">Sin resultados — intenta con más detalles</span>
+        <span class="sug-texto">Sin resultados — intenta: "Francisco Zarco 116"</span>
       </div>`;
     el.style.display = 'block';
     return;
   }
 
   el.innerHTML = resultados.map((r, i) => {
-    // Construir etiqueta legible: calle número, colonia, ciudad
-    const a = r.address || {};
-    const partes = [
-      a.road && a.house_number ? `${a.road} ${a.house_number}` : (a.road || a.name || ''),
-      a.suburb || a.neighbourhood || a.quarter || '',
-      a.city || a.town || a.municipality || '',
-    ].filter(Boolean);
+    // Etiqueta: "Calle Número, Colonia"  o  "Calle, Colonia" si no hay número
+    const lineaUno = [r.calle, r.numero].filter(Boolean).join(' ') || r.ciudad;
+    const lineaDos = [r.colonia, r.ciudad].filter(Boolean).join(', ');
 
-    const etiqueta = partes.length
-      ? partes.join(', ')
-      : r.display_name.split(',').slice(0, 3).join(', ');
-
-    // Icono por tipo de resultado
     const iconoTipo = {
-      house:         '🏠', building: '🏢', amenity: '📍',
-      shop:          '🛍️', road: '🛣️', residential: '🏘️',
-    }[r.type] || '📍';
+      house: '🏠', building: '🏢', amenity: '📍',
+      shop:  '🛍️', road: '🛣️',   residential: '🏘️',
+    }[r.tipo] || (r.numero ? '🏠' : '📍');
 
     return `<div class="map-suggestion" onclick="seleccionarSugerencia(${i}, '${contenedorId}')">
       <span class="sug-icon">${iconoTipo}</span>
-      <span class="sug-texto">${escHtml(etiqueta)}</span>
+      <div class="sug-lineas">
+        <span class="sug-linea1">${escHtml(lineaUno)}</span>
+        ${lineaDos ? `<span class="sug-linea2">${escHtml(lineaDos)}</span>` : ''}
+      </div>
     </div>`;
   }).join('');
 
@@ -229,12 +289,14 @@ function seleccionarSugerencia(idx, contenedorId) {
   if (!el || !el._resultados) return;
 
   const r      = el._resultados[idx];
-  const coords = [parseFloat(r.lat), parseFloat(r.lon)];
-  const a      = r.address || {};
+  const coords = [r.lat, r.lon];
+
+  // Nombre para mostrar en el input
   const nombre = [
-    a.road && a.house_number ? `${a.road} ${a.house_number}` : (a.road || ''),
-    a.suburb || a.neighbourhood || '',
-  ].filter(Boolean).join(', ') || r.display_name.split(',').slice(0, 2).join(', ');
+    r.calle,
+    r.numero,
+    r.colonia ? `Col. ${r.colonia}` : '',
+  ].filter(Boolean).join(' ') || r.ciudad;
 
   el.style.display = 'none';
 
@@ -243,15 +305,19 @@ function seleccionarSugerencia(idx, contenedorId) {
     _coordOrigen = coords;
     if (_markerOrigen) _map.removeLayer(_markerOrigen);
     _markerOrigen = L.marker(coords, { icon: iconoPunto('#22c55e', 16) })
-      .addTo(_map).bindPopup(`<b>Origen</b><br>${escHtml(nombre)}`).openPopup();
-    _map.setView(coords, 16);
+      .addTo(_map)
+      .bindPopup(`<b>Origen</b><br>${escHtml(nombre)}`)
+      .openPopup();
+    _map.setView(coords, 17);
   } else {
     document.getElementById('inp-destino').value = nombre;
     _coordDestino = coords;
     if (_markerDestino) _map.removeLayer(_markerDestino);
     _markerDestino = L.marker(coords, { icon: iconoPunto('#ef4444', 16) })
-      .addTo(_map).bindPopup(`<b>Destino</b><br>${escHtml(nombre)}`).openPopup();
-    _map.setView(coords, 16);
+      .addTo(_map)
+      .bindPopup(`<b>Destino</b><br>${escHtml(nombre)}`)
+      .openPopup();
+    _map.setView(coords, 17);
   }
 
   if (_coordOrigen && _coordDestino) calcularRuta();

@@ -44,14 +44,12 @@
       <div class="tt-header">
         <span>Distancia</span><span>Tarifa</span>
       </div>
-      <div class="tt-row"><span>0 — 4.9 km</span><span class="tt-price">$50</span></div>
-      <div class="tt-row"><span>5 — 5.9 km</span><span class="tt-price">$60</span></div>
-      <div class="tt-row"><span>6 — 6.9 km</span><span class="tt-price">$70</span></div>
-      <div class="tt-row"><span>7 — 7.9 km</span><span class="tt-price">$80</span></div>
-      <div class="tt-row"><span>8 — 8.9 km</span><span class="tt-price">$90</span></div>
-      <div class="tt-row"><span>9 — 9.9 km</span><span class="tt-price">$100</span></div>
-      <div class="tt-row"><span>10 — 10.9 km</span><span class="tt-price">$110</span></div>
-      <div class="tt-row tt-formula"><span>+1 km extra</span><span class="tt-price">+$10</span></div>
+      <div class="tt-row"><span>0 — 5 km</span><span class="tt-price">$50 fijo</span></div>
+      <div class="tt-row"><span>5.1 km</span><span class="tt-price">$51</span></div>
+      <div class="tt-row"><span>10 km</span><span class="tt-price">$100</span></div>
+      <div class="tt-row"><span>15 km</span><span class="tt-price">$150</span></div>
+      <div class="tt-row"><span>19.8 km</span><span class="tt-price">$198</span></div>
+      <div class="tt-row tt-formula"><span>+100 metros</span><span class="tt-price">+$1</span></div>
     </div>
     <button class="modal-btn-primary" style="margin-top:16px" onclick="closeTarifaModal()">Entendido</button>
   </div>
@@ -177,6 +175,7 @@
   <div class="tab-bar">
     <button class="tab-item active" id="tab-nuevo"     onclick="showTab('nuevo')">Nuevo envio</button>
     <button class="tab-item"        id="tab-historial" onclick="showTab('historial')">Historial</button>
+    <button class="tab-item"        id="tab-mapa"      onclick="showTab('mapa')">🗺️ Ruta</button>
     <button class="tab-item"        id="tab-tarifa"    onclick="showTarifaModal()">Tarifas</button>
   </div>
 
@@ -272,6 +271,54 @@
     <div id="movs-list" style="display:none"></div>
   </div>
 
+  <!-- ══════ PANEL: MAPA / RUTA ══════ -->
+  <div id="panel-mapa" class="panel">
+
+    <!-- Buscador origen -->
+    <div class="map-search-wrap">
+      <div class="map-search-field">
+        <span class="map-search-icon green">●</span>
+        <input
+          id="inp-origen"
+          class="field-input"
+          placeholder="Origen (desde dónde sales)"
+          autocomplete="off"
+          oninput="onOrigenInput()"
+        />
+        <button class="btn-gps-inline" id="btn-gps" onclick="usarUbicacionComoOrigen()" title="Usar mi ubicación">📍</button>
+      </div>
+      <div id="sugerencias-origen" class="sugerencias-list" style="display:none"></div>
+    </div>
+
+    <!-- Buscador destino -->
+    <div class="map-search-wrap" style="margin-top:8px">
+      <div class="map-search-field">
+        <span class="map-search-icon red">●</span>
+        <input
+          id="inp-destino"
+          class="field-input"
+          placeholder="Destino (a dónde vas)"
+          autocomplete="off"
+          oninput="onDestinoInput()"
+        />
+      </div>
+      <div id="sugerencias-destino" class="sugerencias-list" style="display:none"></div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="map-actions-row">
+      <button class="btn-calcular-ruta" id="btn-calcular-ruta" onclick="calcularRuta()">🗺️ Calcular ruta</button>
+      <button class="btn-limpiar-ruta" onclick="limpiarRuta()">✕ Limpiar</button>
+    </div>
+
+    <!-- Resultado de la ruta -->
+    <div id="ruta-resultado" class="ruta-resultado" style="display:none"></div>
+
+    <!-- Mapa -->
+    <div id="mapa-container" class="mapa-container"></div>
+
+  </div>
+
 </div>
 
 <!-- BOTTOM BAR -->
@@ -287,6 +334,10 @@
 </footer>
 
 <script src="js/app.js"></script>
+<!-- Leaflet CSS inline para evitar dependencias externas problemáticas -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/maps.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));

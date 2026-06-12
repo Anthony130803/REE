@@ -1365,3 +1365,22 @@ body {
   color: #fff;
   box-shadow: 0 4px 14px rgba(52,168,83,0.25);
 }
+
+/* ── Botón X limpiar campo ── */
+.btn-clear-field {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s;
+}
+.btn-clear-field:active { background: rgba(255,255,255,0.2); color: #fff; }

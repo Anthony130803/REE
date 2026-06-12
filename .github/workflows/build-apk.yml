@@ -3,31 +3,67 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Install Capacitor
+
+      - name: Install Capacitor + Geolocation plugin
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/android @capacitor/cli
+          npm install @capacitor/core @capacitor/android @capacitor/cli @capacitor/geolocation
+
       - name: Preparar www
         run: |
           mkdir -p www
           cp index.html manifest.json sw.js www/
           cp -r css js icons www/
+
       - name: Add Android
         run: npx cap add android
-      - name: Copy assets
-        run: npx cap copy android
+
+      - name: Sync Capacitor (copia assets + plugins)
+        run: npx cap sync android
+
+      - name: Agregar permisos de GPS al AndroidManifest
+        run: |
+          python3 << 'PYEOF'
+          import re
+
+          path = 'android/app/src/main/AndroidManifest.xml'
+          content = open(path).read()
+
+          permisos = [
+              '<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />',
+              '<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />',
+              '<uses-feature android:name="android.hardware.location.gps" android:required="false" />',
+          ]
+
+          for permiso in permisos:
+              if permiso not in content:
+                  # Insertar antes de <application
+                  content = content.replace(
+                      '<application',
+                      permiso + '\n    <application',
+                      1
+                  )
+
+          open(path, 'w').write(content)
+          print('AndroidManifest.xml actualizado:')
+          print(content)
+          PYEOF
+
       - name: Fix Kotlin duplicates
         run: |
           python3 -c "
@@ -46,12 +82,15 @@ jobs:
           '''
           if 'resolutionStrategy' not in content:
               open(path, 'w').write(content + fix)
-              print('Fix OK')
+              print('Fix Kotlin OK')
           "
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
+
       - name: Build APK
         run: cd android && ./gradlew assembleDebug --no-daemon
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

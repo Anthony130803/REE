@@ -47,8 +47,9 @@ function initMap() {
   // Atribución pequeña abajo izquierda
   L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(_map);
 
-  // GPS automático al abrir
-  detectarUbicacion(false);
+  // Mostrar banner de GPS en vez de pedirlo automáticamente.
+  // Android requiere un gesto del usuario para disparar el permiso.
+  mostrarBannerGps();
 }
 
 // ── ICONOS ────────────────────────────────────────────────────
@@ -420,3 +421,145 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.sugerencias-list').forEach(el => el.style.display = 'none');
   }
 });
+
+// ── BANNER GPS (primer uso) ───────────────────────────────────
+// Android PWA requiere gesto del usuario para dar permiso de ubicación.
+// Mostramos un banner claro en vez de pedir GPS silenciosamente.
+function mostrarBannerGps() {
+  // Si ya tenemos ubicación, no mostrar nada
+  if (_ubicacionActual) return;
+
+  // Revisar si el permiso ya fue dado antes
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+      if (result.state === 'granted') {
+        // Ya tiene permiso — pedir directo sin banner
+        detectarUbicacion(false);
+      } else if (result.state === 'denied') {
+        // Permiso denegado — mostrar instrucciones
+        mostrarAvisoPermisoDenegado();
+      } else {
+        // 'prompt' — mostrar banner para que el usuario lo dispare
+        insertarBannerGps();
+      }
+    }).catch(() => {
+      // Navegador viejo que no soporta permissions API
+      insertarBannerGps();
+    });
+  } else {
+    insertarBannerGps();
+  }
+}
+
+function insertarBannerGps() {
+  const panel = document.getElementById('panel-mapa');
+  if (!panel || document.getElementById('banner-gps')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'banner-gps';
+  banner.className = 'banner-gps';
+  banner.innerHTML = `
+    <span class="banner-gps-icon">📍</span>
+    <span class="banner-gps-texto">Activa el GPS para detectar tu ubicación</span>
+    <button class="banner-gps-btn" onclick="pedirGpsDesdeBoton()">Activar</button>`;
+
+  // Insertar antes del primer hijo del panel
+  panel.insertBefore(banner, panel.firstChild);
+}
+
+function pedirGpsDesdeBoton() {
+  const banner = document.getElementById('banner-gps');
+  if (banner) {
+    banner.innerHTML = `
+      <span class="banner-gps-icon">⏳</span>
+      <span class="banner-gps-texto">Esperando permiso...</span>`;
+  }
+  detectarUbicacion(true);
+}
+
+function mostrarAvisoPermisoDenegado() {
+  const panel = document.getElementById('panel-mapa');
+  if (!panel || document.getElementById('banner-gps')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'banner-gps';
+  banner.className = 'banner-gps banner-gps-error';
+  banner.innerHTML = `
+    <span class="banner-gps-icon">⚠️</span>
+    <div class="banner-gps-texto">
+      GPS bloqueado. Para activarlo:<br>
+      <small>Configuración → Apps → Chrome → Permisos → Ubicación → Permitir</small>
+    </div>`;
+  panel.insertBefore(banner, panel.firstChild);
+}
+
+// Override de detectarUbicacion para quitar el banner al éxito
+const _detectarOriginal = detectarUbicacion;
+// Parchar para quitar banner cuando funciona
+function detectarUbicacion(mostrarToast = true) {
+  if (!navigator.geolocation) {
+    if (mostrarToast) showToast('GPS no disponible en este dispositivo', 'amber');
+    return;
+  }
+
+  const btn = document.getElementById('btn-gps');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      _ubicacionActual = [pos.coords.latitude, pos.coords.longitude];
+
+      if (btn) { btn.textContent = '📍'; btn.disabled = false; }
+
+      // Quitar banner si existe
+      const banner = document.getElementById('banner-gps');
+      if (banner) banner.remove();
+
+      if (_map) {
+        _map.setView(_ubicacionActual, 15);
+        if (window._markerUbicacion) {
+          window._markerUbicacion.setLatLng(_ubicacionActual);
+        } else {
+          window._markerUbicacion = L.marker(_ubicacionActual, {
+            icon: iconoUbicacion(), zIndexOffset: 1000
+          }).addTo(_map).bindPopup('<b>Tu ubicación</b>');
+        }
+      }
+
+      // Auto-rellenar origen
+      const inpOrigen = document.getElementById('inp-origen');
+      if (inpOrigen && !inpOrigen.value) {
+        inpOrigen.value = 'Mi ubicación actual';
+        _coordOrigen = _ubicacionActual;
+        if (_coordDestino) calcularRuta();
+      }
+
+      if (mostrarToast) showToast('📍 Ubicación detectada', 'green');
+    },
+    err => {
+      if (btn) { btn.textContent = '📍'; btn.disabled = false; }
+
+      const banner = document.getElementById('banner-gps');
+
+      if (err.code === 1) {
+        // PERMISSION_DENIED — mostrar instrucciones claras
+        if (banner) {
+          banner.className = 'banner-gps banner-gps-error';
+          banner.innerHTML = `
+            <span class="banner-gps-icon">⚠️</span>
+            <div class="banner-gps-texto">
+              GPS bloqueado. Ve a:<br>
+              <small>Configuración del celular → Apps → Chrome (o tu navegador) → Permisos → Ubicación → Permitir</small>
+            </div>`;
+        }
+        if (mostrarToast) showToast('GPS bloqueado — ve a Configuración → Apps', 'red');
+      } else {
+        if (mostrarToast) {
+          const msgs = { 2: 'GPS no disponible', 3: 'GPS tardó demasiado — intenta de nuevo' };
+          showToast(msgs[err.code] || 'Error de GPS', 'amber');
+        }
+      }
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+  );
+}

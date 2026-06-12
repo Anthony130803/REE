@@ -1265,3 +1265,69 @@ body {
   backdrop-filter: blur(4px);
 }
 .leaflet-control-attribution a { color: rgba(255,255,255,0.4) !important; }
+
+/* ── Banner GPS ── */
+.banner-gps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.08));
+  border: 1px solid rgba(66,133,244,0.35);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  animation: fadeInDown 0.3s ease;
+}
+.banner-gps-error {
+  background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06));
+  border-color: rgba(239,68,68,0.3);
+}
+.banner-gps-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.banner-gps-texto {
+  flex: 1;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+}
+.banner-gps-texto small {
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+}
+.banner-gps-btn {
+  background: #4285F4;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.banner-gps-btn:active { opacity: 0.8; }
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Sugerencia con dos líneas (calle + colonia) */
+.sug-lineas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.sug-linea1 {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+.sug-linea2 {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}

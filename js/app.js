@@ -57,12 +57,24 @@ function startClock() {
 
 // ── TABS PRINCIPALES ──────────────────────────────────
 function showTab(name) {
-  ['nuevo','historial'].forEach(t => {
-    document.getElementById('panel-' + t).classList.remove('active');
-    document.getElementById('tab-' + t).classList.remove('active');
+  ['nuevo','historial','mapa'].forEach(t => {
+    const panel = document.getElementById('panel-' + t);
+    const tab   = document.getElementById('tab-' + t);
+    if (panel) panel.classList.remove('active');
+    if (tab)   tab.classList.remove('active');
   });
-  document.getElementById('panel-' + name).classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
+  const activePanel = document.getElementById('panel-' + name);
+  const activeTab   = document.getElementById('tab-' + name);
+  if (activePanel) activePanel.classList.add('active');
+  if (activeTab)   activeTab.classList.add('active');
+
+  // Inicializar mapa cuando se abre esa pestaña
+  if (name === 'mapa') {
+    setTimeout(() => {
+      if (typeof initMap === 'function') initMap();
+      if (_map) _map.invalidateSize();
+    }, 100);
+  }
 }
 
 // ── TABS HISTORIAL ────────────────────────────────────
@@ -128,19 +140,18 @@ function setMode(m) {
 }
 
 // ── KM → TARIFA ───────────────────────────────────────
+// Regla: 0–5 km = $50 fijo
+//        más de 5 km = $1 por cada 100 metros
+//        Ejemplos: 5.0 km → $50, 10 km → $100, 19.8 km → $198
 function calcFare(km) {
   if (km < 0) return 0;
-  if (km < 5) return 50;
-  return 50 + Math.floor(km - 5 + 1) * 10;
-  // 5.0–5.9 → 60, 6.0–6.9 → 70, etc.
-  // Mismo que: floor(km) >= 5 ? 50 + (floor(km) - 4) * 10 : 50
+  if (km <= 5) return 50;
+  return Math.round(km * 10); // $1 por 100m = $10 por km
 }
 
-// Versión correcta:
+// Alias para compatibilidad con onKmInput
 function tarifaPorKm(km) {
-  if (km < 5) return 50;
-  // cada km completo extra desde 5
-  return 50 + (Math.floor(km) - 4) * 10;
+  return calcFare(km);
 }
 
 function onKmInput() {

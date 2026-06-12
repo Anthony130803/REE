@@ -2,5 +2,17 @@
   "appId": "com.repartofacil.app",
   "appName": "Reparto Facil",
   "webDir": "www",
-  "android": { "allowMixedContent": true }
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "Geolocation": {
+      "plistEntries": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para calcular la distancia y tarifa del envío.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Necesitamos tu ubicación para calcular la distancia y tarifa del envío."
+      }
+    }
+  }
 }

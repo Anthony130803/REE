@@ -18,6 +18,7 @@ const ASSETS_PROPIOS = [
 // Dominios externos que NUNCA se cachean
 const RED_SIEMPRE = [
   'nominatim.openstreetmap.org',   // búsqueda de direcciones
+  'photon.komoot.io',              // búsqueda de direcciones (respaldo)
   'router.project-osrm.org',       // cálculo de rutas
   'stadiamaps.com',                // tiles del mapa
   'tile.openstreetmap.org',        // tiles fallback

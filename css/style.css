@@ -1331,3 +1331,37 @@ body {
   font-size: 11px;
   color: rgba(255,255,255,0.4);
 }
+
+/* ── Botones Waze / Google Maps ── */
+.nav-botones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-nav {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 10px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-nav:active { opacity: 0.8; transform: scale(0.97); }
+
+.btn-nav.waze {
+  background: linear-gradient(135deg, #1a1a2e, #05c8f0);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(5,200,240,0.25);
+}
+
+.btn-nav.gmaps {
+  background: linear-gradient(135deg, #1a1a2e, #34a853);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(52,168,83,0.25);
+}

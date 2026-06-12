@@ -216,12 +216,14 @@ function seleccionarSugerencia(idx, contenedorId) {
 
   if (contenedorId === 'sugerencias-origen') {
     document.getElementById('inp-origen').value = nombre;
+    actualizarBtnClear('origen');
     _coordOrigen = coords;
     if (_markerOrigen) _map.removeLayer(_markerOrigen);
     _markerOrigen = L.marker(coords, { icon: iconoPunto('#22c55e',16) }).addTo(_map).bindPopup(`<b>Origen</b><br>${escHtml(nombre)}`).openPopup();
     _map.setView(coords, 17);
   } else {
     document.getElementById('inp-destino').value = nombre;
+    actualizarBtnClear('destino');
     _coordDestino = coords;
     if (_markerDestino) _map.removeLayer(_markerDestino);
     _markerDestino = L.marker(coords, { icon: iconoPunto('#ef4444',16) }).addTo(_map).bindPopup(`<b>Destino</b><br>${escHtml(nombre)}`).openPopup();
@@ -325,18 +327,66 @@ function limpiarRuta() {
   const btn = document.getElementById('btn-calcular-ruta'); if (btn) { btn.textContent='🗺️ Calcular ruta'; btn.disabled=false; }
 }
 
+// ── INPUT / FOCUS HANDLERS ────────────────────────────────────
+
+// Mostrar/ocultar botón X según contenido del campo
+function actualizarBtnClear(campo) {
+  const inp = document.getElementById(`inp-${campo}`);
+  const btn = document.getElementById(`clear-${campo}`);
+  if (!inp || !btn) return;
+  btn.style.display = inp.value.length > 0 ? 'flex' : 'none';
+}
+
+// Limpiar un campo individual sin limpiar todo
+function limpiarCampo(campo) {
+  const inp = document.getElementById(`inp-${campo}`);
+  const sug = document.getElementById(`sugerencias-${campo}`);
+  if (inp) { inp.value = ''; inp.focus(); }
+  if (sug) sug.style.display = 'none';
+  actualizarBtnClear(campo);
+
+  if (campo === 'origen') {
+    _coordOrigen = null;
+    if (_markerOrigen) { _map.removeLayer(_markerOrigen); _markerOrigen = null; }
+  } else {
+    _coordDestino = null;
+    if (_markerDestino) { _map.removeLayer(_markerDestino); _markerDestino = null; }
+    const nav = document.getElementById('nav-botones'); if (nav) nav.style.display = 'none';
+  }
+
+  // Limpiar ruta si existía
+  if (_routeLayer) { _map.removeLayer(_routeLayer); _routeLayer = null; }
+  const res = document.getElementById('ruta-resultado'); if (res) res.style.display = 'none';
+  const btn = document.getElementById('btn-calcular-ruta'); if (btn) { btn.textContent = '🗺️ Calcular ruta'; btn.disabled = false; }
+}
+
 function onOrigenInput() {
   const val = document.getElementById('inp-origen').value;
+  actualizarBtnClear('origen');
   clearTimeout(_searchTimeout);
-  if (val.length < 3) { document.getElementById('sugerencias-origen').style.display='none'; return; }
-  _searchTimeout = setTimeout(() => buscarDireccion(val, res => mostrarSugerencias(res,'sugerencias-origen')), 380);
+  if (val.length < 2) { document.getElementById('sugerencias-origen').style.display = 'none'; return; }
+  _searchTimeout = setTimeout(() => buscarDireccion(val, res => mostrarSugerencias(res, 'sugerencias-origen')), 400);
 }
 
 function onDestinoInput() {
   const val = document.getElementById('inp-destino').value;
+  actualizarBtnClear('destino');
   clearTimeout(_searchTimeout);
-  if (val.length < 3) { document.getElementById('sugerencias-destino').style.display='none'; return; }
-  _searchTimeout = setTimeout(() => buscarDireccion(val, res => mostrarSugerencias(res,'sugerencias-destino')), 380);
+  if (val.length < 2) { document.getElementById('sugerencias-destino').style.display = 'none'; return; }
+  _searchTimeout = setTimeout(() => buscarDireccion(val, res => mostrarSugerencias(res, 'sugerencias-destino')), 400);
+}
+
+// Al hacer focus mostrar sugerencias previas si las hay
+function onOrigenFocus() {
+  actualizarBtnClear('origen');
+  const sug = document.getElementById('sugerencias-origen');
+  if (sug && sug._resultados && sug._resultados.length) sug.style.display = 'block';
+}
+
+function onDestinoFocus() {
+  actualizarBtnClear('destino');
+  const sug = document.getElementById('sugerencias-destino');
+  if (sug && sug._resultados && sug._resultados.length) sug.style.display = 'block';
 }
 
 document.addEventListener('click', e => {

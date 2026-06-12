@@ -238,7 +238,7 @@ async function buscarDireccion(query, callback) {
     if (!/san luis|potosi|slp/i.test(query)) {
       queryFull = `${query}, San Luis Potosí, México`;
     }
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(queryFull)}&language=es&key=AIzaSyDMGn5pmGdAID5idUKccAPjT-F0_OJz9I0`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(queryFull)}&language=es&key=AIzaSyAOVYRIgupAurZup5y1PRh8Ismb1A3lLao`;
     const response = await fetch(url);
     const data = await response.json();
 

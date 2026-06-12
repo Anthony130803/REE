@@ -281,7 +281,7 @@
         <input
           id="inp-origen"
           class="field-input"
-          placeholder="Origen (desde dónde sales)"
+          placeholder="Origen — desde dónde sales"
           autocomplete="off"
           oninput="onOrigenInput()"
         />
@@ -290,14 +290,19 @@
       <div id="sugerencias-origen" class="sugerencias-list" style="display:none"></div>
     </div>
 
+    <!-- Línea conectora -->
+    <div class="map-search-connector">
+      <div class="map-search-connector-line"></div>
+    </div>
+
     <!-- Buscador destino -->
-    <div class="map-search-wrap" style="margin-top:8px">
+    <div class="map-search-wrap">
       <div class="map-search-field">
         <span class="map-search-icon red">●</span>
         <input
           id="inp-destino"
           class="field-input"
-          placeholder="Destino (a dónde vas)"
+          placeholder="Destino — a dónde vas"
           autocomplete="off"
           oninput="onDestinoInput()"
         />
